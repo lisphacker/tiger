@@ -1,0 +1,35 @@
+:set prompt "\ESC[95m\STXλ. \ESC[m\STX"
+:set prompt-cont "\ESC[1;32mλ| \ESC[m"
+
+-- ============================================
+-- warns and sanity checking
+-- ============================================
+-- :set -Wunrecognised-pragmas
+-- :set -Wall
+:set -XOverloadedStrings
+-- :set -XScopedTypeVariables
+-- :set -Wempty-enumerations
+-- :set -Wincomplete-patterns
+
+-- :set -v
+
+:set -XGADTs
+-- :set -XLambdaCase
+-- :set -XNegativeLiterals
+-- :set -XTypeOperators
+-- :set -XTupleSections
+:set -XFlexibleContexts
+-- :set -XTypeApplications
+
+-- :set -package QuickCheck
+
+-- Pretty printing of it
+-- :set -package ghci-pretty
+-- import IPPrint.Colored
+-- :set -interactive-print=IPPrint.Colored.cpprint
+
+-- ============================================
+-- MUST BE AT THE END: And unset some warns
+-- ============================================
+-- :set -Wno-missing-signatures
+-- :set -Wno-type-defaults
