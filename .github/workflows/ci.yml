@@ -1,0 +1,31 @@
+# From https://github.com/freckle/stack-action
+# https://tech.freckle.com/2021/05/18/haskell-on-actions/
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: main
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-latest
+          - macOS-latest
+          # - windows-latest
+
+        stack-yaml:
+          - stack.yaml
+
+      fail-fast: false
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: freckle/stack-action@v4
+        with:
+          stack-yaml: ${{ matrix.stack-yaml }}
+ 
