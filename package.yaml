@@ -32,6 +32,7 @@ default-extensions:
 # - FunctionalDependencies
 - GADTs
 # - GeneralizedNewtypeDeriving
+- ImportQualifiedPost
 # - InstanceSigs
 # - KindSignatures
 - LambdaCase
@@ -53,11 +54,17 @@ default-extensions:
 dependencies:
 - name: base
 - string-interpolate
+- text
 
 # The library contains all of our application code.
 # The executable defined below is just a thin wrapper.
 library:
   source-dirs: src
+  build-tools:
+  - alex
+  - happy
+  dependencies:
+  - array
 
 # Runnable executable for our application
 executables:
