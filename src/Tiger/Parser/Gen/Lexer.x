@@ -2,16 +2,23 @@
 module Tiger.Parser.Gen.Lexer where
 
 import Data.Text qualified as T
+import Text.Read (readMaybe)
 
 import Tiger.Parser.Tokens qualified as Tok
 import Tiger.Util.SourcePos
 }
-%wrapper "posn"
+%wrapper "monadUserState"
 
 @stringNormalChar = [ . \n ] # [ \" \\ ]
 @digit = [ 0-9 ]
 
 tiger :-
+  -- Whitespace
+  [\ \t\n\r]+ ;
+
+  -- Comments
+  -- "/*" { commentLevel += 1 }
+  
   -- Keywords
   "array" { mkToken Tok.Array }
   "if" { mkToken Tok.If }
@@ -64,33 +71,63 @@ tiger :-
 
   -- Literals
   \" @stringNormalChar* \" { mkTokenWithParam Tok.StringLiteral 
-                                        (\s -> T.drop 1 $ T.dropEnd 1 $ T.pack s)
-                                        length }
+                                        (\s -> Just $ T.drop 1 $ T.dropEnd 1 $ T.pack s) }
 
   @digit+ { mkTokenWithParam Tok.IntLiteral 
-                             (\s -> read s :: Int)
-                             length }
+                             (\s -> readMaybe s :: Maybe Int) }
 
   -- Identifiers
   [a-zA-Z] [a-zA-Z0-9_]* { mkTokenWithParam Tok.Identifier 
-                                            T.pack
-                                            length }
+                                            (\s -> Just $ T.pack s) }
 
-  "_main" { mkTokenWithParam Tok.Identifier 
-                                            T.pack
-                                            length }
+  "_main" { mkTokenWithParam Tok.Identifier (\s -> Just $ T.pack s) }
 
 {
 
-mkToken :: (SourceRegion -> Tok.Token) -> AlexPosn -> String -> Tok.Token
-mkToken cons (AlexPn off r c) tokenStr = let l = length tokenStr
-                                             span = makeSpanOfLength (length tokenStr) (SourceLocation off r c)
-                                             region = SourceRegion "" span
-                                         in cons region
+data AlexUserState = AlexUserState {
+  commentLevel :: Int
+}
 
-mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> a) -> (String -> Int) -> AlexPosn -> String -> Tok.Token
-mkTokenWithParam cons parse lengthOf (AlexPn off r c) tokenStr = let span = makeSpanFromString tokenStr (SourceLocation off r c)
-                                                                     region = SourceRegion "" span
-                                                                 in cons (parse tokenStr) region
+alexEOF :: Alex Tok.Token
+alexEOF = pure $ Tok.EOF
+
+alexInitUserState :: AlexUserState
+alexInitUserState = AlexUserState 0
+
+getCommentLevel :: Alex Int
+getCommentLevel = commentLevel <$> alexGetUserState
+
+incCommentLevel :: Alex ()
+incCommentLevel = do
+  st <- alexGetUserState
+  alexSetUserState $ st { commentLevel = commentLevel st + 1 }
+
+decCommentLevel :: Alex ()
+decCommentLevel = do
+  st <- alexGetUserState
+  alexSetUserState $ st { commentLevel = commentLevel st - 1 }
+
+mkToken :: (SourceRegion -> Tok.Token) -> AlexAction Tok.Token
+mkToken cons ((AlexPn off r c), _, _, _) len = do
+  let span = makeSpanOfLength len (SourceLocation off r c)
+  let region = SourceRegion "" span
+  return $ cons region
+
+mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> Maybe a) -> AlexAction Tok.Token
+mkTokenWithParam cons parse ((AlexPn off r c), _, _, tokenStr) len = do
+  let span = makeSpanFromString tokenStr (SourceLocation off r c)
+  let region = SourceRegion "" span
+  case parse tokenStr of
+    Nothing -> alexError $ "Invalid token: " ++ tokenStr
+    Just tokenVal -> return $ cons tokenVal region
+
+tokenScan :: String -> Either String [Tok.Token]
+tokenScan input = runAlex input go
+  where
+    go = do
+      output <- alexMonadScan
+      case output of
+        (Tok.EOF) -> pure []
+        _ -> (output :) <$> go
 
 }

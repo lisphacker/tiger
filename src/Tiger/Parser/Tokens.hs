@@ -57,4 +57,6 @@ data Token
   | IntLiteral !Int !SourceRegion
   | -- Identifiers
     Identifier !Text !SourceRegion
+  | -- EOF
+    EOF
   deriving (Eq, Ord, Show)
