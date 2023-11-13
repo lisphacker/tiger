@@ -27,7 +27,7 @@ mergeSpans :: [Span] -> Span
 mergeSpans = undefined
 
 addHorizontalOffset :: Int -> SourceLocation -> SourceLocation
-addHorizontalOffset l src = src{srcLocOffset = srcLocOffset src + l}
+addHorizontalOffset l src = src{srcLocOffset = srcLocOffset src + l - 1, srcLocColumn = srcLocColumn src + l - 1}
 
 makeSpanOfLength :: Int -> SourceLocation -> Span
 makeSpanOfLength l src = Span src $ addHorizontalOffset l src

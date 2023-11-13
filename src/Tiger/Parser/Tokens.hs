@@ -53,8 +53,8 @@ data Token
   | Or !SourceRegion
   | Assign !SourceRegion
   | -- Literals
-    StringLiteral !SourceRegion !Text
-  | IntLiteral !SourceRegion !Int
+    StringLiteral !Text !SourceRegion
+  | IntLiteral !Int !SourceRegion
   | -- Identifiers
-    Identifier !SourceRegion !Text
+    Identifier !Text !SourceRegion
   deriving (Eq, Ord, Show)

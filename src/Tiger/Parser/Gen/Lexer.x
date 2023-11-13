@@ -1,10 +1,14 @@
 {
 module Tiger.Parser.Gen.Lexer where
 
+import Data.Text qualified as T
+
 import Tiger.Parser.Tokens qualified as Tok
 import Tiger.Util.SourcePos
 }
 %wrapper "posn"
+
+@stringChar = . # [ \" ]
 
 tiger :-
   -- Keywords
@@ -57,6 +61,9 @@ tiger :-
   "|" { mkToken Tok.Or }
   ":=" { mkToken Tok.Assign }
 
+  -- Literals
+  \" @stringChar* \" { mkTokenWithParam Tok.StringLiteral (\s -> T.drop 1 $ T.dropEnd 1 $ T.pack s)}
+
 
 {
 
@@ -64,6 +71,12 @@ mkToken :: (SourceRegion -> Tok.Token) -> AlexPosn -> String -> Tok.Token
 mkToken cons (AlexPn off r c) tokenStr = let l = length tokenStr
                                              span = makeSpanOfLength (length tokenStr) (SourceLocation off r c)
                                              region = SourceRegion "" span
-                                          in cons region
+                                         in cons region
+
+mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> a) -> AlexPosn -> String -> Tok.Token
+mkTokenWithParam cons parse (AlexPn off r c) tokenStr = let l = length tokenStr
+                                                            span = makeSpanOfLength (length tokenStr) (SourceLocation off r c)
+                                                            region = SourceRegion "" span
+                                                        in cons (parse tokenStr) region
 
 }
