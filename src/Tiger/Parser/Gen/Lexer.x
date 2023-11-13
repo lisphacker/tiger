@@ -8,7 +8,7 @@ import Tiger.Util.SourcePos
 }
 %wrapper "posn"
 
-@stringChar = . # [ \" ]
+@stringNormalChar = . # [ \" \\ ]
 
 tiger :-
   -- Keywords
@@ -62,9 +62,9 @@ tiger :-
   ":=" { mkToken Tok.Assign }
 
   -- Literals
-  \" @stringChar* \" { mkTokenWithParam Tok.StringLiteral 
+  \" @stringNormalChar* \" { mkTokenWithParam Tok.StringLiteral 
                                         (\s -> T.drop 1 $ T.dropEnd 1 $ T.pack s)
-                                        (\s -> length s - 2) }
+                                        length }
 
 
 {
