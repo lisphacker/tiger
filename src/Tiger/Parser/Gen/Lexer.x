@@ -8,7 +8,7 @@ import Tiger.Util.SourcePos
 }
 %wrapper "posn"
 
-@stringNormalChar = . # [ \" \\ ]
+@stringNormalChar = [ . \n ] # [ \" \\ ]
 
 tiger :-
   -- Keywords
@@ -76,7 +76,7 @@ mkToken cons (AlexPn off r c) tokenStr = let l = length tokenStr
                                          in cons region
 
 mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> a) -> (String -> Int) -> AlexPosn -> String -> Tok.Token
-mkTokenWithParam cons parse lengthOf (AlexPn off r c) tokenStr = let span = makeSpanOfLength (lengthOf tokenStr) (SourceLocation off r c)
+mkTokenWithParam cons parse lengthOf (AlexPn off r c) tokenStr = let span = makeSpanFromString tokenStr (SourceLocation off r c)
                                                                      region = SourceRegion "" span
                                                                  in cons (parse tokenStr) region
 

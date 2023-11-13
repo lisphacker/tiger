@@ -1,6 +1,9 @@
 module Parser.Lexer where
 
 import Control.Monad (forM_)
+
+import Data.Text qualified as T
+
 import Test.Hspec
 
 import Tiger.Parser.Gen.Lexer
@@ -9,7 +12,7 @@ import Tiger.Util.SourcePos
 
 testNonParametricToken :: String -> String -> (SourceRegion -> Token) -> Spec
 testNonParametricToken tokenType tokenStr tokenCons = it ("Testing " ++ tokenType ++ " " ++ tokenStr) $ do
-  alexScanTokens tokenStr `shouldBe` [tokenCons (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation (length tokenStr - 1) 1 (length tokenStr))))]
+  alexScanTokens tokenStr `shouldBe` [tokenCons (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation (length tokenStr) 1 (length tokenStr + 1))))]
 
 testKeywords :: Spec
 testKeywords = describe "Testing keyword lexers" $ parallel $ forM_ keywords (\(kw, token) -> testNonParametricToken "keyword" kw token)
@@ -73,14 +76,24 @@ testStringLiteral :: Spec
 testStringLiteral = describe "Testing string lexer" $ parallel $ do
   testEmptyStringLiteral
   testSimpleStringLiteral
+  testMultiLineStringLiteral
  where
   testEmptyStringLiteral = it "Testing empty string literal" $ do
-    alexScanTokens "\"\"" `shouldBe` [mkStrLit "" 2]
+    scanAndTestStr "\"\""
   testSimpleStringLiteral = it "Testing simple string literal" $ do
-    alexScanTokens "\"12345\"" `shouldBe` [mkStrLit "12345" 7]
-  testSimpleStringLiteral = it "Testing multi-line string literal" $ do
-    alexScanTokens "\"123\n45\"" `shouldBe` [mkStrLit "123\n45" 7]
-  mkStrLit str len = StringLiteral str (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation (len - 1) 1 len)))
+    scanAndTestStr "\"12345\""
+  testMultiLineStringLiteral = it "Testing multi-line string literal" $ do
+    scanAndTestStr "\"123\n45\""
+  scanAndTestStr s = alexScanTokens s `shouldBe` [mkStrLit s]
+  mkStrLit str = StringLiteral (T.drop 1 $ T.dropEnd 1 $ T.pack str) (SourceRegion "" (Span start end))
+   where
+    start = SourceLocation 0 1 1
+    end = computeEnd start str
+    computeEnd e [] = e
+    computeEnd (SourceLocation o r c) (x : xs) = case x of
+      '\n' -> computeEnd (SourceLocation (o + 1) (r + 1) 1) xs
+      '\t' -> computeEnd (SourceLocation (o + 1) r (c + 8)) xs
+      _ -> computeEnd (SourceLocation (o + 1) r (c + 1)) xs
 
 lexerTestsSpec :: Spec
 lexerTestsSpec = describe "Lexer tests" $ parallel $ do
