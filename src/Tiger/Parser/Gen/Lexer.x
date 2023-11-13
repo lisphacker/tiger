@@ -9,6 +9,7 @@ import Tiger.Util.SourcePos
 %wrapper "posn"
 
 @stringNormalChar = [ . \n ] # [ \" \\ ]
+@digit = [ 0-9 ]
 
 tiger :-
   -- Keywords
@@ -66,6 +67,9 @@ tiger :-
                                         (\s -> T.drop 1 $ T.dropEnd 1 $ T.pack s)
                                         length }
 
+  @digit+ { mkTokenWithParam Tok.IntLiteral 
+                             (\s -> read s :: Int)
+                             length }
 
 {
 

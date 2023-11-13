@@ -95,8 +95,22 @@ testStringLiteral = describe "Testing string lexer" $ parallel $ do
       '\t' -> computeEnd (SourceLocation (o + 1) r (c + 8)) xs
       _ -> computeEnd (SourceLocation (o + 1) r (c + 1)) xs
 
+testIntLiteral :: Spec
+testIntLiteral = describe "Testing int lexer" $ parallel $ do
+  scanAndTestInt 0
+  scanAndTestInt 12345
+ where
+  scanAndTestInt i =  it ("Testing int " ++ show i) $ do
+    alexScanTokens (show i) `shouldBe` [mkIntLit i]
+  mkIntLit i = IntLiteral i (SourceRegion "" (Span start end))
+   where
+    start = SourceLocation 0 1 1
+    end = SourceLocation l 1 (l + 1)
+    l = length $ show i
+
 lexerTestsSpec :: Spec
 lexerTestsSpec = describe "Lexer tests" $ parallel $ do
   testKeywords
   testSymbols
   testStringLiteral
+  testIntLiteral
