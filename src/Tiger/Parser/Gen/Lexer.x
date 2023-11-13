@@ -17,7 +17,8 @@ tiger :-
   [\ \t\n\r]+ ;
 
   -- Comments
-  -- "/*" { commentLevel += 1 }
+  "/*" { mkToken Tok.CommentBegin }
+  "*/" { mkToken Tok.CommentEnd }
   
   -- Keywords
   "array" { mkToken Tok.Array }
@@ -127,7 +128,9 @@ tokenScan input = runAlex input go
     go = do
       output <- alexMonadScan
       case output of
-        (Tok.EOF) -> pure []
+        Tok.EOF -> pure []
+        (Tok.CommentBegin _) -> incCommentLevel >> go
+        (Tok.CommentEnd _) -> decCommentLevel >> go
         _ -> (output :) <$> go
 
 }

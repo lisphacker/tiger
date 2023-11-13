@@ -59,4 +59,7 @@ data Token
     Identifier !Text !SourceRegion
   | -- EOF
     EOF
+  | -- Comments
+    CommentBegin !SourceRegion
+  | CommentEnd !SourceRegion
   deriving (Eq, Ord, Show)
