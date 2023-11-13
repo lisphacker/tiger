@@ -74,7 +74,8 @@ testStringLiteral = describe "Testing string lexer" $ do
   testSimpleStringLiteral
  where
   testSimpleStringLiteral = it "Testing simple string literal" $ do
-    alexScanTokens "\"12345\"" `shouldBe` [StringLiteral "12345" (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation 6 1 7)))]
+    alexScanTokens "\"12345\"" `shouldBe` [mkStrLit "12345" 5]
+  mkStrLit str len = StringLiteral str (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation (len - 1) 1 len)))
 
 lexerTestsSpec :: Spec
 lexerTestsSpec = describe "Lexer tests" $ parallel $ do

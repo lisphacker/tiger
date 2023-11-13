@@ -62,7 +62,9 @@ tiger :-
   ":=" { mkToken Tok.Assign }
 
   -- Literals
-  \" @stringChar* \" { mkTokenWithParam Tok.StringLiteral (\s -> T.drop 1 $ T.dropEnd 1 $ T.pack s)}
+  \" @stringChar* \" { mkTokenWithParam Tok.StringLiteral 
+                                        (\s -> T.drop 1 $ T.dropEnd 1 $ T.pack s)
+                                        (\s -> length s - 2) }
 
 
 {
@@ -73,10 +75,9 @@ mkToken cons (AlexPn off r c) tokenStr = let l = length tokenStr
                                              region = SourceRegion "" span
                                          in cons region
 
-mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> a) -> AlexPosn -> String -> Tok.Token
-mkTokenWithParam cons parse (AlexPn off r c) tokenStr = let l = length tokenStr
-                                                            span = makeSpanOfLength (length tokenStr) (SourceLocation off r c)
-                                                            region = SourceRegion "" span
-                                                        in cons (parse tokenStr) region
+mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> a) -> (String -> Int) -> AlexPosn -> String -> Tok.Token
+mkTokenWithParam cons parse lengthOf (AlexPn off r c) tokenStr = let span = makeSpanOfLength (lengthOf tokenStr) (SourceLocation off r c)
+                                                                     region = SourceRegion "" span
+                                                                 in cons (parse tokenStr) region
 
 }
