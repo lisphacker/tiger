@@ -71,6 +71,15 @@ tiger :-
                              (\s -> read s :: Int)
                              length }
 
+  -- Identifiers
+  [a-zA-Z] [a-zA-Z0-9_]* { mkTokenWithParam Tok.Identifier 
+                                            T.pack
+                                            length }
+
+  "_main" { mkTokenWithParam Tok.Identifier 
+                                            T.pack
+                                            length }
+
 {
 
 mkToken :: (SourceRegion -> Tok.Token) -> AlexPosn -> String -> Tok.Token

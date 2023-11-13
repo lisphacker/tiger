@@ -108,9 +108,24 @@ testIntLiteral = describe "Testing int lexer" $ parallel $ do
     end = SourceLocation l 1 (l + 1)
     l = length $ show i
 
+testIdentifier :: Spec
+testIdentifier = describe "Testing id lexer" $ parallel $ do
+  scanAndTestId "a"
+  scanAndTestId "abc"
+  scanAndTestId "_main"
+ where
+  scanAndTestId id =  it ("Testing id " ++ id) $ do
+    alexScanTokens id `shouldBe` [mkId id]
+  mkId id = Identifier (T.pack id) (SourceRegion "" (Span start end))
+   where
+    start = SourceLocation 0 1 1
+    end = SourceLocation l 1 (l + 1)
+    l = length id
+
 lexerTestsSpec :: Spec
 lexerTestsSpec = describe "Lexer tests" $ parallel $ do
   testKeywords
   testSymbols
   testStringLiteral
   testIntLiteral
+  testIdentifier
