@@ -1,1 +1,1 @@
-module Tiger.Parser.AST where
+module Tiger.Syntax.AST where

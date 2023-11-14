@@ -1,4 +1,4 @@
-module Tiger.Parser.Tokens where
+module Tiger.Syntax.Tokens where
 
 import Data.Text (Text)
 import Tiger.Util.SourcePos (SourceRegion)

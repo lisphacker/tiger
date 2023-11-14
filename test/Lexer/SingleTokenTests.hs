@@ -7,8 +7,8 @@ import Data.Text qualified as T
 
 import Test.Hspec
 
-import Tiger.Parser.Lexer
-import Tiger.Parser.Tokens
+import Tiger.Syntax.Lexer
+import Tiger.Syntax.Tokens
 import Tiger.Util.SourcePos
 
 testNonParametricToken :: String -> String -> (SourceRegion -> Token) -> Spec

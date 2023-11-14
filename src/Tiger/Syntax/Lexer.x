@@ -1,11 +1,11 @@
 {
-module Tiger.Parser.Lexer where
+module Tiger.Syntax.Lexer where
 
 import Control.Monad (when)
 import Data.Text qualified as T
 import Text.Read (readMaybe)
 
-import Tiger.Parser.Tokens qualified as Tok
+import Tiger.Syntax.Tokens qualified as Tok
 import Tiger.Util.SourcePos
 }
 %wrapper "monadUserState"

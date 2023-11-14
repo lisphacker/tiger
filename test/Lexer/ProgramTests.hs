@@ -7,7 +7,7 @@ import Data.String.Interpolate (i)
 
 import Test.Hspec
 
-import Tiger.Parser.Lexer (tokenScan)
+import Tiger.Syntax.Lexer (tokenScan)
 
 testEmptyProgram :: Spec
 testEmptyProgram = it "Testing empty program" $ do
