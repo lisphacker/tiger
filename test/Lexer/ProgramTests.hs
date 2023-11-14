@@ -8,7 +8,6 @@ import Data.String.Interpolate (i)
 import Test.Hspec
 
 import Tiger.Syntax.Lexer (tokenScan)
-import Tiger.Syntax.Tokens
 import Tiger.Util.SourcePos (SourceLocation (..), SourceRegion (..), Span (Span))
 
 testEmptyProgram :: Spec
@@ -56,7 +55,7 @@ end
 
 testProgram :: Spec
 testProgram = it "Testing program" $ do
-  (fmap show) <$> tokenScan prog
+  fmap show <$> tokenScan prog
     `shouldBe` Right
       [ "Let"
       , "Var"
