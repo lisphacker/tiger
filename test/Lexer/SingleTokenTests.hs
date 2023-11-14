@@ -7,7 +7,7 @@ import Data.Text qualified as T
 
 import Test.Hspec
 
-import Tiger.Parser.Gen.Lexer
+import Tiger.Parser.Lexer
 import Tiger.Parser.Tokens
 import Tiger.Util.SourcePos
 

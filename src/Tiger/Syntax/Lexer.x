@@ -1,5 +1,5 @@
 {
-module Tiger.Parser.Gen.Lexer where
+module Tiger.Parser.Lexer where
 
 import Control.Monad (when)
 import Data.Text qualified as T
