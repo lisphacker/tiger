@@ -22,5 +22,4 @@ main = do
 spec :: Spec
 spec = do
   singleTokenLexerTestsSpec
-
--- programLexerTestsSpec
+  programLexerTestsSpec

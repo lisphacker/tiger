@@ -1,15 +1,13 @@
 module Lexer.SingleTokenTests where
 
-import Control.Exception (evaluate)
-import Control.Monad (forM_, void)
+import Control.Monad (forM_)
+import Prelude hiding (id)
 
 import Data.Text qualified as T
 
 import Test.Hspec
 
-import GHC.IO (unsafePerformIO)
 import Tiger.Parser.Gen.Lexer
-import Tiger.Parser.Gen.Lexer (tokenScan)
 import Tiger.Parser.Tokens
 import Tiger.Util.SourcePos
 
@@ -18,7 +16,7 @@ testNonParametricToken tokenType tokenStr tokenCons = it ("Testing " ++ tokenTyp
   tokenScan tokenStr `shouldBe` Right [tokenCons (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation (length tokenStr) 1 (length tokenStr + 1))))]
 
 testKeywords :: Spec
-testKeywords = describe "Testing keyword lexers" $ forM_ keywords (\(kw, token) -> testNonParametricToken "keyword" kw token)
+testKeywords = describe "Testing keyword lexers" $ forM_ keywords (\(kw, tok) -> testNonParametricToken "keyword" kw tok)
  where
   keywords =
     [ ("array", Array)
@@ -47,7 +45,7 @@ testKeywords = describe "Testing keyword lexers" $ forM_ keywords (\(kw, token) 
     ]
 
 testSymbols :: Spec
-testSymbols = describe "Testing symbol lexers" $ forM_ symbols (\(sym, token) -> testNonParametricToken "symbol" sym token)
+testSymbols = describe "Testing symbol lexers" $ forM_ symbols (\(sym, tok) -> testNonParametricToken "symbol" sym tok)
  where
   symbols =
     [ (",", Comma)
@@ -134,9 +132,14 @@ testIdentifier = describe "Testing id lexer" $ do
 testComments :: Spec
 testComments = describe "Testing comment lexer" $ parallel $ do
   testComment "/* abc def 123 */"
+  testComment "/* abc /* def */ 123 */"
+  testInvalidComment "/* abc /* def 123 */"
+  testInvalidComment "/* abc */ def 123 */"
  where
   testComment c = it ("Testing comment " ++ c) $ do
     tokenScan c `shouldBe` Right []
+  testInvalidComment c = it ("Testing invalid comment " ++ c) $ do
+    tokenScan c `shouldNotBe` Right []
 
 singleTokenLexerTestsSpec :: Spec
 singleTokenLexerTestsSpec = describe "Single token lexer tests" $ parallel $ do

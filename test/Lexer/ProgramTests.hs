@@ -7,17 +7,19 @@ import Data.String.Interpolate (i)
 
 import Test.Hspec
 
-import Tiger.Parser.Gen.Lexer
+import Tiger.Parser.Gen.Lexer (tokenScan)
 
 testEmptyProgram :: Spec
 testEmptyProgram = it "Testing empty program" $ do
   tokenScan "" `shouldBe` Right []
 
 -- /* A program to solve the 8-queens problem */
-
+prog :: String
 prog =
-  [i|let
-var N := 8
+  [i|/* A program to solve the 8-queens problem */
+
+let
+    var N := 8
 
     type intArray = array of int
 

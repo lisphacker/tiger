@@ -1,6 +1,7 @@
 {
 module Tiger.Parser.Gen.Lexer where
 
+import Control.Monad (when)
 import Data.Text qualified as T
 import Text.Read (readMaybe)
 
@@ -13,11 +14,13 @@ import Tiger.Util.SourcePos
 @digit = [ 0-9 ]
 
 tiger :-
+
+<0> {
   -- Whitespace
   [\ \t\n\r]+ ;
 
   -- Comments
-  "/*" { mkToken Tok.CommentBegin }
+  "/*" { incCommentLevel `andBegin` comment }
   "*/" { mkToken Tok.CommentEnd }
   
   -- Keywords
@@ -82,6 +85,14 @@ tiger :-
                                             (\s -> Just $ T.pack s) }
 
   "_main" { mkTokenWithParam Tok.Identifier (\s -> Just $ T.pack s) }
+}
+
+<comment> {
+  "/*" { incCommentLevel }
+  "*/" { decCommentLevel }
+  [\ \t\n\r]+ ;
+  . ;
+}
 
 {
 
@@ -90,7 +101,11 @@ data AlexUserState = AlexUserState {
 }
 
 alexEOF :: Alex Tok.Token
-alexEOF = pure $ Tok.EOF
+alexEOF = do
+  st <- alexGetUserState
+  case commentLevel st of
+    0 -> return $ Tok.EOF
+    _ -> alexError "Unmatched comment end"
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUserState 0
@@ -98,26 +113,31 @@ alexInitUserState = AlexUserState 0
 getCommentLevel :: Alex Int
 getCommentLevel = commentLevel <$> alexGetUserState
 
-incCommentLevel :: Alex ()
-incCommentLevel = do
+incCommentLevel :: AlexAction Tok.Token
+incCommentLevel input len = do
   st <- alexGetUserState
   alexSetUserState $ st { commentLevel = commentLevel st + 1 }
+  skip input len
 
-decCommentLevel :: Alex ()
-decCommentLevel = do
+decCommentLevel :: AlexAction Tok.Token
+decCommentLevel input len = do
   st <- alexGetUserState
-  alexSetUserState $ st { commentLevel = commentLevel st - 1 }
+  let newLevel = commentLevel st - 1
+  alexSetUserState $ st { commentLevel = newLevel }
+  when (newLevel < 0) $ alexError "Unmatched comment end"
+  when (newLevel == 0) $ alexSetStartCode 0
+  skip input len
 
 mkToken :: (SourceRegion -> Tok.Token) -> AlexAction Tok.Token
 mkToken cons ((AlexPn off r c), _, _, _) len = do
-  let span = makeSpanOfLength len (SourceLocation off r c)
-  let region = SourceRegion "" span
+  let sp = makeSpanOfLength len (SourceLocation off r c)
+  let region = SourceRegion "" sp
   return $ cons region
 
 mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> Maybe a) -> AlexAction Tok.Token
-mkTokenWithParam cons parse ((AlexPn off r c), _, _, tokenStr) len = do
-  let span = makeSpanFromString tokenStr (SourceLocation off r c)
-  let region = SourceRegion "" span
+mkTokenWithParam cons parse ((AlexPn off r c), _, _, tokenStr) _ = do
+  let sp = makeSpanFromString tokenStr (SourceLocation off r c)
+  let region = SourceRegion "" sp
   case parse tokenStr of
     Nothing -> alexError $ "Invalid token: " ++ tokenStr
     Just tokenVal -> return $ cons tokenVal region
@@ -129,8 +149,6 @@ tokenScan input = runAlex input go
       output <- alexMonadScan
       case output of
         Tok.EOF -> pure []
-        (Tok.CommentBegin _) -> incCommentLevel >> go
-        (Tok.CommentEnd _) -> decCommentLevel >> go
         _ -> (output :) <$> go
 
 }
