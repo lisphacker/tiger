@@ -55,6 +55,8 @@ dependencies:
 - name: base
 - string-interpolate
 - text
+ghc-options:
+- -optP-Wno-nonportable-include-path
 
 # The library contains all of our application code.
 # The executable defined below is just a thin wrapper.
