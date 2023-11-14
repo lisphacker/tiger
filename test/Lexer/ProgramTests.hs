@@ -8,7 +8,6 @@ import Data.String.Interpolate (i)
 import Test.Hspec
 
 import Tiger.Syntax.Lexer (tokenScan)
-import Tiger.Util.SourcePos (SourceLocation (..), SourceRegion (..), Span (Span))
 
 testEmptyProgram :: Spec
 testEmptyProgram = it "Testing empty program" $ do
