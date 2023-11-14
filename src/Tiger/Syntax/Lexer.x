@@ -11,7 +11,6 @@ import Tiger.Util.SourcePos
 %wrapper "monadUserState"
 
 @stringNormalChar = [ . \n ] # [ \" \\ ]
-@digit = [ 0-9 ]
 
 tiger :-
 
@@ -77,11 +76,11 @@ tiger :-
   \" @stringNormalChar* \" { mkTokenWithParam Tok.StringLiteral 
                                         (\s -> Just $ T.drop 1 $ T.dropEnd 1 $ T.pack s) }
 
-  @digit+ { mkTokenWithParam Tok.IntLiteral 
-                             (\s -> readMaybe s :: Maybe Int) }
+  [0-9]+ { mkTokenWithParam Tok.IntLiteral 
+                            (\s -> readMaybe s :: Maybe Int) }
 
   -- Identifiers
-  [a-zA-Z] [a-zA-Z0-9_]* { mkTokenWithParam Tok.Identifier 
+  [a-zA-Z][a-zA-Z0-9_]* { mkTokenWithParam Tok.Identifier 
                                             (\s -> Just $ T.pack s) }
 
   "_main" { mkTokenWithParam Tok.Identifier (\s -> Just $ T.pack s) }
@@ -135,11 +134,12 @@ mkToken cons ((AlexPn off r c), _, _, _) len = do
   return $ cons region
 
 mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> Maybe a) -> AlexAction Tok.Token
-mkTokenWithParam cons parse ((AlexPn off r c), _, _, tokenStr) _ = do
+mkTokenWithParam cons parse ((AlexPn off r c), _, _, inputStr) len = do
+  let tokenStr = take len inputStr
   let sp = makeSpanFromString tokenStr (SourceLocation off r c)
   let region = SourceRegion "" sp
   case parse tokenStr of
-    Nothing -> alexError $ "Invalid token: " ++ tokenStr
+    Nothing -> alexError $ "Invalid token: <<<" ++ tokenStr ++ ">>>"
     Just tokenVal -> return $ cons tokenVal region
 
 tokenScan :: String -> Either String [Tok.Token]

@@ -99,6 +99,7 @@ testStringLiteral = describe "Testing string lexer" $ do
 testIntLiteral :: Spec
 testIntLiteral = describe "Testing int lexer" $ do
   scanAndTestInt 0
+  scanAndTestInt 8
   scanAndTestInt 12345
  where
   scanAndTestInt i = it ("Testing int " ++ show i) $ do
