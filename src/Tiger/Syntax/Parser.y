@@ -9,7 +9,7 @@ import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegi
 
 }
 
-%name tiger
+%name tiger Program
 %tokentype { Tok.Token }
 %error { parseError }
 
@@ -117,7 +117,7 @@ Exp : nil { NilExpression (sourceRegion $1) }
     | while Exp do Exp { WhileExpression $2 $4 (mergeHasSourceRegions $1 $4) }
     | for identifier ":=" Exp to Exp do Exp { ForExpression (mkIdent $2) $4 $6 $8 (mergeHasSourceRegions $1 $8) }
     | break { BreakExpression (sourceRegion $1) }
-    -- | let Chunks in Exps end { LetExpression $2 $4 (mergeHasSourceRegions $1 $5) }
+    | let Chunks in Exps end { LetExpression $2 $4 (mergeHasSourceRegions $1 $5) }
 
 Exps : Exp ';' Exps { $1:$3 }
      | Exp { [$1] }
