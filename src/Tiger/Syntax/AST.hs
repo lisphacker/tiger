@@ -1,76 +1,130 @@
 module Tiger.Syntax.AST where
 
 import Data.Text (Text)
+import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
 
-data Identifier = Identifier Text
+data Identifier = Identifier Text !SourceRegion
   deriving (Eq, Show)
+
+instance HasSourceRegion Identifier where
+  sourceRegion (Identifier _ r) = r
 
 type TypeIdentifier = Identifier
 
-data LValue
-  = IdLValue Identifier
-  | RecordLValue LValue Identifier
-  | ArrayLValue LValue Expression
+class (HasSourceRegion a) => ASTNode a
+
+data TypedField = TypedField Identifier TypeIdentifier !SourceRegion
   deriving (Eq, Show)
 
-data BinaryOperator
-  = AddOp
-  | SubOp
-  | MulOp
-  | DivOp
-  | EqOp
-  | NeqOp
-  | LtOp
-  | LeOp
-  | GtOp
-  | GeOp
-  | AndOp
-  | OrOp
-  deriving (Eq, Show)
-
-data Expression
-  = NilExpression
-  | VarExpression Identifier
-  | IntExpression Int
-  | StringExpression Text
-  | LValueExpression LValue
-  | CallExpression Identifier [Expression]
-  | NegateExpression Expression
-  | OpExpression BinaryOperator Expression Expression
-  | AssignmentExpression LValue Expression
-  | IfExpression Expression Expression (Maybe Expression)
-  | WhileExpression Expression Expression
-  | ForExpression Identifier Expression Expression Expression
-  | BreakExpression
-  | LetExpression [Chunk] [Expression]
-  deriving (Eq, Show)
-data TypedField = TypedField Identifier TypeIdentifier
-  deriving (Eq, Show)
+instance HasSourceRegion TypedField where
+  sourceRegion (TypedField _ _ r) = r
 
 data Type
-  = TypeAlias TypeIdentifier
-  | RecordType [TypedField]
-  | ArrayType TypeIdentifier
+  = TypeAlias TypeIdentifier !SourceRegion
+  | RecordType [TypedField] !SourceRegion
+  | ArrayType TypeIdentifier !SourceRegion
   deriving (Eq, Show)
 
-data VarDec = VarDec Identifier (Maybe TypeIdentifier) Exp
+instance HasSourceRegion Type where
+  sourceRegion (TypeAlias _ r) = r
+  sourceRegion (RecordType _ r) = r
+  sourceRegion (ArrayType _ r) = r
+
+data LValue
+  = IdLValue Identifier !SourceRegion
+  | RecordLValue LValue Identifier !SourceRegion
+  | ArrayLValue LValue Expression !SourceRegion
   deriving (Eq, Show)
 
-data TypeDec = TypeDec TypeIdentifier Type
+instance HasSourceRegion LValue where
+  sourceRegion (IdLValue _ r) = r
+  sourceRegion (RecordLValue _ _ r) = r
+  sourceRegion (ArrayLValue _ _ r) = r
+
+data BinaryOperator
+  = AddOp !SourceRegion
+  | SubOp !SourceRegion
+  | MulOp !SourceRegion
+  | DivOp !SourceRegion
+  | EqOp !SourceRegion
+  | NeqOp !SourceRegion
+  | LtOp !SourceRegion
+  | LeOp !SourceRegion
+  | GtOp !SourceRegion
+  | GeOp !SourceRegion
+  | AndOp !SourceRegion
+  | OrOp !SourceRegion
   deriving (Eq, Show)
 
-data FuncDec
-  = FuncDec Identifier [TypedField] (Maybe TypeIdentifier) Exp
-  | Primitive Identifier [TypedField] (Maybe TypeIdentifier)
+instance HasSourceRegion BinaryOperator where
+  sourceRegion (AddOp r) = r
+  sourceRegion (SubOp r) = r
+  sourceRegion (MulOp r) = r
+  sourceRegion (DivOp r) = r
+  sourceRegion (EqOp r) = r
+  sourceRegion (NeqOp r) = r
+  sourceRegion (LtOp r) = r
+  sourceRegion (LeOp r) = r
+  sourceRegion (GtOp r) = r
+  sourceRegion (GeOp r) = r
+  sourceRegion (AndOp r) = r
+  sourceRegion (OrOp r) = r
+
+data Expression
+  = NilExpression !SourceRegion
+  | IntExpression Int !SourceRegion
+  | StringExpression Text !SourceRegion
+  | ArrayCreationExpression TypeIdentifier Expression Expression !SourceRegion
+  | RecordCreationExpression TypeIdentifier [(Identifier, Expression)] !SourceRegion
+  | LValueExpression LValue !SourceRegion
+  | CallExpression Identifier [Expression] !SourceRegion
+  | NegateExpression Expression !SourceRegion
+  | OpExpression BinaryOperator Expression Expression !SourceRegion
+  | SeqExpression [Expression] !SourceRegion
+  | AssignmentExpression LValue Expression !SourceRegion
+  | IfExpression Expression Expression (Maybe Expression) !SourceRegion
+  | WhileExpression Expression Expression !SourceRegion
+  | ForExpression Identifier Expression Expression Expression !SourceRegion
+  | BreakExpression !SourceRegion
+  | LetExpression [Chunk] [Expression] !SourceRegion
   deriving (Eq, Show)
+
+instance HasSourceRegion Expression where
+  sourceRegion (NilExpression r) = r
+  sourceRegion (IntExpression _ r) = r
+  sourceRegion (StringExpression _ r) = r
+  sourceRegion (ArrayCreationExpression _ _ _ r) = r
+  sourceRegion (RecordCreationExpression _ _ r) = r
+  sourceRegion (LValueExpression _ r) = r
+  sourceRegion (CallExpression _ _ r) = r
+  sourceRegion (NegateExpression _ r) = r
+  sourceRegion (OpExpression _ _ _ r) = r
+  sourceRegion (SeqExpression _ r) = r
+  sourceRegion (AssignmentExpression _ _ r) = r
+  sourceRegion (IfExpression _ _ _ r) = r
+  sourceRegion (WhileExpression _ _ r) = r
+  sourceRegion (ForExpression _ _ _ _ r) = r
+  sourceRegion (BreakExpression r) = r
+  sourceRegion (LetExpression _ _ r) = r
 
 data Chunk
-  = TypeDecChunk [TypeDec]
-  | FunDecChunk [FuncDec]
-  | VarDecChunk VarDec
+  = TypeDecl TypeIdentifier Type !SourceRegion
+  | FuncDecl Identifier [TypedField] (Maybe TypeIdentifier) Expression !SourceRegion
+  | PrimitiveDecl Identifier [TypedField] (Maybe TypeIdentifier) !SourceRegion
+  | VarDecl Identifier (Maybe TypeIdentifier) Expression !SourceRegion
   deriving (Eq, Show)
 
+instance HasSourceRegion Chunk where
+  sourceRegion (TypeDecl _ _ r) = r
+  sourceRegion (FuncDecl _ _ _ _ r) = r
+  sourceRegion (PrimitiveDecl _ _ _ r) = r
+  sourceRegion (VarDecl _ _ _ r) = r
+
 data Program
-  = ExpProgram Exp
-  | Chunks [Chunk]
+  = ExpressionProgram Expression !SourceRegion
+  | Chunks [Chunk] !SourceRegion
   deriving (Eq, Show)
+
+instance HasSourceRegion Program where
+  sourceRegion (ExpressionProgram _ r) = r
+  sourceRegion (Chunks _ r) = r

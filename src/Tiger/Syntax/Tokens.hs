@@ -1,7 +1,7 @@
 module Tiger.Syntax.Tokens where
 
 import Data.Text (Text, unpack)
-import Tiger.Util.SourcePos (SourceRegion)
+import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
 
 data Token
   = -- keywords
@@ -63,6 +63,56 @@ data Token
     CommentBegin !SourceRegion
   | CommentEnd !SourceRegion
   deriving (Eq, Ord)
+
+instance HasSourceRegion Token where
+  sourceRegion (Array r) = r
+  sourceRegion (If r) = r
+  sourceRegion (Then r) = r
+  sourceRegion (Else r) = r
+  sourceRegion (While r) = r
+  sourceRegion (For r) = r
+  sourceRegion (To r) = r
+  sourceRegion (Do r) = r
+  sourceRegion (Let r) = r
+  sourceRegion (In r) = r
+  sourceRegion (End r) = r
+  sourceRegion (Of r) = r
+  sourceRegion (Break r) = r
+  sourceRegion (Nil r) = r
+  sourceRegion (Function r) = r
+  sourceRegion (Var r) = r
+  sourceRegion (Type r) = r
+  sourceRegion (Import r) = r
+  sourceRegion (Primitive r) = r
+  sourceRegion (Class r) = r
+  sourceRegion (Extends r) = r
+  sourceRegion (Method r) = r
+  sourceRegion (New r) = r
+  sourceRegion (Comma r) = r
+  sourceRegion (Colon r) = r
+  sourceRegion (Semicolon r) = r
+  sourceRegion (LParen r) = r
+  sourceRegion (RParen r) = r
+  sourceRegion (LBracket r) = r
+  sourceRegion (RBracket r) = r
+  sourceRegion (LBrace r) = r
+  sourceRegion (RBrace r) = r
+  sourceRegion (Dot r) = r
+  sourceRegion (Plus r) = r
+  sourceRegion (Minus r) = r
+  sourceRegion (Star r) = r
+  sourceRegion (Slash r) = r
+  sourceRegion (EqualTo r) = r
+  sourceRegion (NotEqualTo r) = r
+  sourceRegion (LessThan r) = r
+  sourceRegion (LessThanOrEqualTo r) = r
+  sourceRegion (GreaterThan r) = r
+  sourceRegion (GreaterThanOrEqualTo r) = r
+  sourceRegion (And r) = r
+  sourceRegion (Or r) = r
+  sourceRegion (Assign r) = r
+  sourceRegion (StringLiteral _ r) = r
+  sourceRegion (IntLiteral _ r) = r
 
 instance Show Token where
   show (Array _) = "Array"

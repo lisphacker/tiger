@@ -22,3 +22,5 @@ cabal.sandbox.config
 tiger.cabal
 # Vs code
 .history/
+
+/*.log
