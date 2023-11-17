@@ -16,30 +16,39 @@ import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegi
 %error { parseError }
 %monad { Either String } { thenEither } { returnEither }
 
+%right in
+%nonassoc ':='
+%nonassoc '&'
+%nonassoc '|'
+%nonassoc '=' "<>"
+%nonassoc '<' "<=" '>' ">="
+%left '+' '-'
+%left '*' '/'
+
 %token
-  array { Tok.Array _ }
-  if { Tok.If _ }
-  then { Tok.Then _ }
-  else { Tok.Else _ }
-  while { Tok.While _ }
-  for { Tok.For _ }
-  to { Tok.To _ }
-  do { Tok.Do _ }
-  let { Tok.Let _ }
-  in { Tok.In _ }
-  end { Tok.End _ }
-  of { Tok.Of _ }
-  break { Tok.Break _ }
-  nil { Tok.Nil _ }
-  function { Tok.Function _ }
-  var { Tok.Var _ }
-  type { Tok.Type _ }
-  import { Tok.Import _ }
+  array     { Tok.Array _ }
+  if        { Tok.If _ }
+  then      { Tok.Then _ }
+  else      { Tok.Else _ }
+  while     { Tok.While _ }
+  for       { Tok.For _ }
+  to        { Tok.To _ }
+  do        { Tok.Do _ }
+  let       { Tok.Let _ }
+  in        { Tok.In _ }
+  end       { Tok.End _ }
+  of        { Tok.Of _ }
+  break     { Tok.Break _ }
+  nil       { Tok.Nil _ }
+  function  { Tok.Function _ }
+  var       { Tok.Var _ }
+  type      { Tok.Type _ }
+  import    { Tok.Import _ }
   primitive { Tok.Primitive _ }
-  class { Tok.Class _ }
-  extends { Tok.Extends _ }
-  method { Tok.Method _ }
-  new { Tok.New _ }
+  class     { Tok.Class _ }
+  extends   { Tok.Extends _ }
+  method    { Tok.Method _ }
+  new       { Tok.New _ }
 
   ',' { Tok.Comma _ }
   ':' { Tok.Colon _ }
@@ -107,6 +116,7 @@ LValue : identifier { IdLValue (mkIdent $1) (sourceRegion $1) }
 Exp : nil { NilExpression (sourceRegion $1) }
     | integer { IntExpression (getIntFromToken $1) (sourceRegion $1) }
     | string { StringExpression (getStrFromToken $1) (sourceRegion $1) }
+    | '(' Exp ')' { $2 }
     | TypeId '[' Exp ']' of Exp { ArrayCreationExpression $1 $3 $6 (mergeHasSourceRegions $1 $6) }
     | TypeId '{' FieldValues '}' { RecordCreationExpression $1 $3 (mergeHasSourceRegions $1 $4) }
     | LValue { LValueExpression $1 (sourceRegion $1) }

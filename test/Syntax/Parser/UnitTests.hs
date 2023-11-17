@@ -9,17 +9,25 @@ parseExpression' s = case parseExpression s of
   Left err -> Nothing
   Right exp -> Just $ show exp
 
+test :: String -> String -> Spec
+test input expected = it ("Parsing '" ++ input ++ "'") $ do
+  parseExpression' input `shouldBe` Just expected
+
+namedTest :: String -> String -> String -> Spec
+namedTest name input expected = it name $ do
+  parseExpression' input `shouldBe` Just expected
+
 parseLiterals :: Spec
 parseLiterals = describe "Parse literals" $ do
-  it "should parse a single integer" $ do
-    parseExpression' "1" `shouldBe` Just "1"
-  it "should parse a single string" $ do
-    parseExpression' "\"abc\"" `shouldBe` Just "\"abc\""
+  namedTest "Parsing a single integer" "1" "1"
+  namedTest "Parsing a single string" "\"abc\"" "\"abc\""
+  namedTest "Parsing an identifier" "abc" "abc"
 
 parseArithmExprSpec :: Spec
 parseArithmExprSpec = describe "Parse arithmetic expressions" $ do
-  it "should parse an identifier" $ do
-    parseExpression' "abc" `shouldBe` Just "abc"
+  test "1 + 2 * 3" "(1 + (2 * 3))"
+  test "1 * 2 + 3" "((1 * 2) + 3)"
+  test "1 * (2 + 3)" "(1 * (2 + 3))"
 
 parserUnitTestsSpec :: Spec
 parserUnitTestsSpec = describe "Parser unit tests" $ parallel $ do
