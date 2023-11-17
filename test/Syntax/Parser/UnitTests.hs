@@ -24,15 +24,32 @@ parseLiterals = describe "Parse literals" $ do
   namedTest "Parsing an identifier" "abc" "abc"
 
 parseArithmExprSpec :: Spec
-parseArithmExprSpec = describe "Parse arithmetic expressions" $ do
-  test "1 + 2 * 3" "(1 + (2 * 3))"
-  test "1 * 2 + 3" "((1 * 2) + 3)"
-  test "1 * (2 + 3)" "(1 * (2 + 3))"
-  test "1 - 2 / (3 * 4) + 5" "((1 - (2 / (3 * 4))) + 5)"
-  test "1 + sin(2)" "(1 + sin([2]))"
-  test "1 - 2" "(1 - 2)"
-  test "-1" "(-(1))"
-  test "3 - -2" "(3 - (-(2)))"
+parseArithmExprSpec = describe "Parse math expressions" $ do
+  describe "Test operator parsing" $ do
+    test "a + b" "(a + b)"
+    test "a - b" "(a - b)"
+    test "a * b" "(a * b)"
+    test "a / b" "(a / b)"
+    test "a = b" "(a = b)"
+    test "a <> b" "(a <> b)"
+    test "a < b" "(a < b)"
+    test "a > b" "(a > b)"
+    test "a <= b" "(a <= b)"
+    test "a >= b" "(a >= b)"
+    test "a & b" "(a & b)"
+    test "a | b" "(a | b)"
+  describe "Test operator precedence" $ do
+    test "a + b * c" "(a + (b * c))"
+    test "a * b + c" "((a * b) + c)"
+    test "a * (b + c)" "(a * (b + c))"
+    test "a + b / c" "(a + (b / c))"
+    test "a * b + c * d" "((a * b) + (c * d))"
+    test "a - b / (c * d) + e" "((a - (b / (c * d))) + e)"
+    test "a + sin(b)" "(a + sin([b]))"
+    test "a - b" "(a - b)"
+    test "-a" "(-(a))"
+    test "c - -b" "(c - (-(b)))"
+    test "a + b < c * d" "((a + b) < (c * d))"
 
 parserUnitTestsSpec :: Spec
 parserUnitTestsSpec = describe "Parser unit tests" $ parallel $ do
