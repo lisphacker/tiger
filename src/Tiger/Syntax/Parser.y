@@ -90,19 +90,6 @@ Type : TypeId { TypeAlias $1 (sourceRegion $1) }
      | '{' TypedFields '}' { RecordType $2 (mergeHasSourceRegions $1 $3) }
      | array of TypeId { ArrayType $3 (mergeHasSourceRegions $1 $3) }
 
-BinOp : '+' { AddOp $ sourceRegion $1 }
-      | '-' { SubOp $ sourceRegion $1 }
-      | '*' { MulOp $ sourceRegion $1 }
-      | '/' { DivOp $ sourceRegion $1 }
-      | '=' { EqOp $ sourceRegion $1 }
-      | "<>" { NeqOp $ sourceRegion $1 }
-      | '<' { LtOp $ sourceRegion $1 }
-      | "<=" { LeOp $ sourceRegion $1 }
-      | '>' { GtOp $ sourceRegion $1 }
-      | ">=" { GeOp $ sourceRegion $1 }
-      | '&' { AndOp $ sourceRegion $1 }
-      | '|' { OrOp $ sourceRegion $1 }
-
 ExpList : Exp ',' ExpList { $1:$3 }
         | Exp { [$1] }
 
@@ -116,14 +103,25 @@ LValue : identifier { IdLValue (mkIdent $1) (sourceRegion $1) }
 Exp : nil { NilExpression (sourceRegion $1) }
     | integer { IntExpression (getIntFromToken $1) (sourceRegion $1) }
     | string { StringExpression (getStrFromToken $1) (sourceRegion $1) }
+    | Exp '+' Exp { OpExpression (AddOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '-' Exp { OpExpression (SubOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '*' Exp { OpExpression (MulOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '/' Exp { OpExpression (DivOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '=' Exp { OpExpression (EqOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp "<>" Exp { OpExpression (NeqOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '<' Exp { OpExpression (LtOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp "<=" Exp { OpExpression (LeOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '>' Exp { OpExpression (GtOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp ">=" Exp { OpExpression (GeOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '&' Exp { OpExpression (AndOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '|' Exp { OpExpression (OrOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
     | '(' Exp ')' { $2 }
+    | '-' Exp { NegateExpression $2 (mergeHasSourceRegions $1 $2) }
+    | '(' Exps ')' { SeqExpression $2 (mergeHasSourceRegions $1 $3) }
     | TypeId '[' Exp ']' of Exp { ArrayCreationExpression $1 $3 $6 (mergeHasSourceRegions $1 $6) }
     | TypeId '{' FieldValues '}' { RecordCreationExpression $1 $3 (mergeHasSourceRegions $1 $4) }
     | LValue { LValueExpression $1 (sourceRegion $1) }
     | identifier '(' ExpList ')' { CallExpression (mkIdent $1) $3 (mergeHasSourceRegions $1 $4) }
-    | '-' Exp { NegateExpression $2 (mergeHasSourceRegions $1 $2) }
-    | Exp BinOp Exp { OpExpression $2 $1 $3 (mergeHasSourceRegions $1 $3) }
-    | '(' Exps ')' { SeqExpression $2 (mergeHasSourceRegions $1 $3) }
     | LValue ":=" Exp { AssignmentExpression $1 $3 (mergeHasSourceRegions $1 $3) }
     | if Exp then Exp else Exp { IfExpression $2 $4 (Just $6) (mergeHasSourceRegions $1 $6) }
     | if Exp then Exp { IfExpression $2 $4 Nothing (mergeHasSourceRegions $1 $4) }
