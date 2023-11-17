@@ -28,6 +28,11 @@ parseArithmExprSpec = describe "Parse arithmetic expressions" $ do
   test "1 + 2 * 3" "(1 + (2 * 3))"
   test "1 * 2 + 3" "((1 * 2) + 3)"
   test "1 * (2 + 3)" "(1 * (2 + 3))"
+  test "1 - 2 / (3 * 4) + 5" "((1 - (2 / (3 * 4))) + 5)"
+  test "1 + sin(2)" "(1 + sin([2]))"
+  test "1 - 2" "(1 - 2)"
+  test "-1" "(-(1))"
+  test "3 - -2" "(3 - (-(2)))"
 
 parserUnitTestsSpec :: Spec
 parserUnitTestsSpec = describe "Parser unit tests" $ parallel $ do

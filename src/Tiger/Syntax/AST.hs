@@ -115,11 +115,11 @@ instance Show Expression where
   show (NilExpression _) = "nil"
   show (IntExpression i _) = show i
   show (StringExpression s _) = show s
-  show (ArrayCreationExpression t s e _) = "array of " ++ show t ++ " [" ++ show s ++ "] of " ++ show e
-  show (RecordCreationExpression t fs _) = "record of " ++ show t ++ " {" ++ show fs ++ "}"
+  show (ArrayCreationExpression t s v _) = show t ++ "[" ++ show s ++ "] of " ++ show v
+  show (RecordCreationExpression t fs _) = show t ++ "{" ++ show fs ++ "}"
   show (LValueExpression l _) = show l
   show (CallExpression f args _) = show f ++ "(" ++ show args ++ ")"
-  show (NegateExpression e _) = "-" ++ show e
+  show (NegateExpression e _) = "(-(" ++ show e ++ "))"
   show (OpExpression op e1 e2 _) = "(" ++ show e1 ++ " " ++ show op ++ " " ++ show e2 ++ ")"
   show (SeqExpression es _) = show es
   show (AssignmentExpression l e _) = show l ++ " := " ++ show e
