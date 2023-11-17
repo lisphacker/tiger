@@ -113,6 +113,7 @@ instance HasSourceRegion Token where
   sourceRegion (Assign r) = r
   sourceRegion (StringLiteral _ r) = r
   sourceRegion (IntLiteral _ r) = r
+  sourceRegion (Identifier _ r) = r
 
 instance Show Token where
   show (Array _) = "Array"

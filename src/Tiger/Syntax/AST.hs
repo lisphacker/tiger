@@ -1,10 +1,13 @@
 module Tiger.Syntax.AST where
 
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
 
 data Identifier = Identifier Text !SourceRegion
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Identifier where
+  show (Identifier s _) = unpack s
 
 instance HasSourceRegion Identifier where
   sourceRegion (Identifier _ r) = r
@@ -34,7 +37,12 @@ data LValue
   = IdLValue Identifier !SourceRegion
   | RecordLValue LValue Identifier !SourceRegion
   | ArrayLValue LValue Expression !SourceRegion
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show LValue where
+  show (IdLValue i _) = show i
+  show (RecordLValue l i _) = show l ++ "." ++ show i
+  show (ArrayLValue l e _) = show l ++ "[" ++ show e ++ "]"
 
 instance HasSourceRegion LValue where
   sourceRegion (IdLValue _ r) = r
@@ -54,7 +62,21 @@ data BinaryOperator
   | GeOp !SourceRegion
   | AndOp !SourceRegion
   | OrOp !SourceRegion
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show BinaryOperator where
+  show (AddOp _) = "+"
+  show (SubOp _) = "-"
+  show (MulOp _) = "*"
+  show (DivOp _) = "/"
+  show (EqOp _) = "="
+  show (NeqOp _) = "<>"
+  show (LtOp _) = "<"
+  show (LeOp _) = "<="
+  show (GtOp _) = ">"
+  show (GeOp _) = ">="
+  show (AndOp _) = "&"
+  show (OrOp _) = "|"
 
 instance HasSourceRegion BinaryOperator where
   sourceRegion (AddOp r) = r
@@ -87,7 +109,26 @@ data Expression
   | ForExpression Identifier Expression Expression Expression !SourceRegion
   | BreakExpression !SourceRegion
   | LetExpression [Chunk] [Expression] !SourceRegion
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Expression where
+  show (NilExpression _) = "nil"
+  show (IntExpression i _) = show i
+  show (StringExpression s _) = unpack s
+  show (ArrayCreationExpression t s e _) = "array of " ++ show t ++ " [" ++ show s ++ "] of " ++ show e
+  show (RecordCreationExpression t fs _) = "record of " ++ show t ++ " {" ++ show fs ++ "}"
+  show (LValueExpression l _) = show l
+  show (CallExpression f args _) = show f ++ "(" ++ show args ++ ")"
+  show (NegateExpression e _) = "-" ++ show e
+  show (OpExpression op e1 e2 _) = "(" ++ show e1 ++ " " ++ show op ++ " " ++ show e2 ++ ")"
+  show (SeqExpression es _) = show es
+  show (AssignmentExpression l e _) = show l ++ " := " ++ show e
+  show (IfExpression c t Nothing _) = "if " ++ show c ++ " then " ++ show t
+  show (IfExpression c t (Just e) _) = "if " ++ show c ++ " then " ++ show t ++ " else " ++ show e
+  show (WhileExpression c b _) = "while " ++ show c ++ " do " ++ show b
+  show (ForExpression i s e b _) = "for " ++ show i ++ " := " ++ show s ++ " to " ++ show e ++ " do " ++ show b
+  show (BreakExpression _) = "break"
+  show (LetExpression cs es _) = "let " ++ show cs ++ " in " ++ show es ++ " end"
 
 instance HasSourceRegion Expression where
   sourceRegion (NilExpression r) = r

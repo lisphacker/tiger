@@ -1,17 +1,20 @@
 {
+{-# LANGUAGE CPP #-}
 module Tiger.Syntax.Parser where
 
-import Data.Text (Text(..))
+import Data.Text (Text(..), pack)
 import Tiger.Syntax.Lexer qualified as L
 import Tiger.Syntax.Tokens qualified as Tok
 import Tiger.Syntax.AST
 import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegions, mergeHasSourceRegions, mergeHasSourceRegionsList)
-
 }
 
-%name tiger Program
+%name parseTigerProgram Program
+%name parseTigerExpression Exp
+
 %tokentype { Tok.Token }
 %error { parseError }
+%monad { Either String } { thenEither } { returnEither }
 
 %token
   array { Tok.Array _ }
@@ -147,7 +150,17 @@ Program : Exp { ExpressionProgram $1 (sourceRegion $1) }
 
 
 {
-parseError = undefined
+thenEither :: Either String a -> (a -> Either String b) -> Either String b
+thenEither (Left err) _ = Left err
+thenEither (Right a) f = f a
+
+returnEither :: a -> Either String a
+returnEither = Right
+
+parseError :: [Tok.Token] -> Either String a
+parseError [] = Left $ "Parse error at end of file"
+parseError (t:ts) = Left $ "Parse error at " <> (show $ sourceRegion t)
+
 
 mkIdent :: Tok.Token -> Identifier
 mkIdent (Tok.Identifier t r) = Identifier t r
@@ -160,4 +173,10 @@ getIntFromToken _ = error "getIntFromToken: not an integer"
 getStrFromToken :: Tok.Token -> Text
 getStrFromToken (Tok.StringLiteral s _) = s
 getStrFromToken _ = error "getStrFromToken: not a string"
+
+parseExpression :: String -> Either String Expression
+parseExpression s = L.tokenScan s >>= parseTigerExpression
+
+parseProgram :: String -> Either String Program
+parseProgram s = L.tokenScan s >>= parseTigerProgram
 }
