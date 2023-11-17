@@ -114,7 +114,7 @@ data Expression
 instance Show Expression where
   show (NilExpression _) = "nil"
   show (IntExpression i _) = show i
-  show (StringExpression s _) = unpack s
+  show (StringExpression s _) = show s
   show (ArrayCreationExpression t s e _) = "array of " ++ show t ++ " [" ++ show s ++ "] of " ++ show e
   show (RecordCreationExpression t fs _) = "record of " ++ show t ++ " {" ++ show fs ++ "}"
   show (LValueExpression l _) = show l

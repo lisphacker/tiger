@@ -11,9 +11,9 @@ import Test.Tasty qualified
 import Test.Hspec
 import Test.Tasty.Hspec
 
-import Lexer.ProgramTests (programLexerTestsSpec)
-import Lexer.SingleTokenTests (singleTokenLexerTestsSpec)
-import Parser.UnitTests (parserUnitTestsSpec)
+import Syntax.Lexer.ProgramTests (programLexerTestsSpec)
+import Syntax.Lexer.SingleTokenTests (singleTokenLexerTestsSpec)
+import Syntax.Parser.UnitTests (parserUnitTestsSpec)
 
 main :: IO ()
 main = do

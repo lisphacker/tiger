@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Lexer.ProgramTests where
+module Syntax.Lexer.ProgramTests where
 
 import Data.String.Interpolate (i)
 
