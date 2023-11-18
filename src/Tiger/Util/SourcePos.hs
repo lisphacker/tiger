@@ -60,6 +60,9 @@ mergeSourceRegions (SourceRegion fp1 s1) (SourceRegion _ s2) = SourceRegion fp1 
 mergeHasSourceRegions :: (HasSourceRegion a, HasSourceRegion b) => a -> b -> SourceRegion
 mergeHasSourceRegions a b = mergeSourceRegions (sourceRegion a) (sourceRegion b)
 
+(<+>) :: (HasSourceRegion a, HasSourceRegion b) => a -> b -> SourceRegion
+(<+>) = mergeHasSourceRegions
+
 mergeHasSourceRegionsList :: (HasSourceRegion a) => [a] -> SourceRegion
 mergeHasSourceRegionsList as = foldl mergeSourceRegions uninitializedSourceRegion $ map sourceRegion as
 

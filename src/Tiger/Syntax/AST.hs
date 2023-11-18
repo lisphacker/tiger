@@ -1,13 +1,19 @@
 module Tiger.Syntax.AST where
 
+import Data.List (intercalate)
 import Data.Text (Text, unpack)
 import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
 
 data Identifier = Identifier Text !SourceRegion
   deriving (Eq)
 
+-- printToken ty value = ty ++  "<" ++ value ++ ">"
+
+printToken :: String -> String -> String
+printToken ty value = value
+
 instance Show Identifier where
-  show (Identifier s _) = unpack s
+  show (Identifier s _) = printToken "ID" $ unpack s
 
 instance HasSourceRegion Identifier where
   sourceRegion (Identifier _ r) = r
@@ -113,15 +119,17 @@ data Expression
 
 instance Show Expression where
   show (NilExpression _) = "nil"
-  show (IntExpression i _) = show i
+  show (IntExpression i _) = printToken "INT" $ show i
   show (StringExpression s _) = show s
-  show (ArrayCreationExpression t s v _) = show t ++ "[" ++ show s ++ "] of " ++ show v
-  show (RecordCreationExpression t fs _) = show t ++ "{" ++ show fs ++ "}"
-  show (LValueExpression l _) = show l
+  show (ArrayCreationExpression t s v _) = printToken "ARRAYCR" $ show t ++ "[" ++ show s ++ "] of " ++ show v
+  show (RecordCreationExpression t fs _) = show t ++ "{" ++ fieldsStr ++ "}"
+   where
+    fieldsStr = intercalate "," $ map (\(i, e) -> show i ++ " = " ++ show e) fs
+  show (LValueExpression l _) = printToken "LVALUE" $ show l
   show (CallExpression f args _) = show f ++ "(" ++ show args ++ ")"
   show (NegateExpression e _) = "(-(" ++ show e ++ "))"
   show (OpExpression op e1 e2 _) = "(" ++ show e1 ++ " " ++ show op ++ " " ++ show e2 ++ ")"
-  show (SeqExpression es _) = show es
+  show (SeqExpression es _) = "(" ++ (foldl (\acc x -> acc ++ show x ++ ";") "" es) ++ ")"
   show (AssignmentExpression l e _) = show l ++ " := " ++ show e
   show (IfExpression c t Nothing _) = "if " ++ show c ++ " then " ++ show t
   show (IfExpression c t (Just e) _) = "if " ++ show c ++ " then " ++ show t ++ " else " ++ show e

@@ -6,7 +6,7 @@ import Data.Text (Text(..), pack)
 import Tiger.Syntax.Lexer qualified as L
 import Tiger.Syntax.Tokens qualified as Tok
 import Tiger.Syntax.AST
-import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegions, mergeHasSourceRegions, mergeHasSourceRegionsList)
+import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegions, mergeHasSourceRegions, mergeHasSourceRegionsList, (<+>))
 }
 
 %name parseTigerProgram Program
@@ -79,16 +79,16 @@ import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegi
 
 %%
 
-TypeId : identifier { mkIdent $1 }
+-- TypeId : identifier { mkIdent $1 }
 
-TypedField : identifier ':' TypeId { TypedField (mkIdent $1) $3 (mergeHasSourceRegions $1 $3) }
+TypedField : identifier ':' identifier { TypedField (mkIdent $1) (mkIdent $3) ($1 <+> $3) }
 
 TypedFields : TypedField ',' TypedFields { $1:$3 }
             | TypedField { [$1] }
 
-Type : TypeId { TypeAlias $1 (sourceRegion $1) }
-     | '{' TypedFields '}' { RecordType $2 (mergeHasSourceRegions $1 $3) }
-     | array of TypeId { ArrayType $3 (mergeHasSourceRegions $1 $3) }
+Type : identifier { TypeAlias (mkIdent $1) (sourceRegion $1) }
+     | '{' TypedFields '}' { RecordType $2 ($1 <+> $3) }
+     | array of identifier { ArrayType (mkIdent $3) ($1 <+> $3) }
 
 ExpList : Exp ',' ExpList { $1:$3 }
         | Exp { [$1] }
@@ -97,52 +97,52 @@ FieldValues : identifier '=' Exp ',' FieldValues { (mkIdent $1,$3):$5 }
             | identifier '=' Exp { [(mkIdent $1,$3)] }
 
 LValue : identifier { IdLValue (mkIdent $1) (sourceRegion $1) }
-       | LValue '.' identifier { RecordLValue $1 (mkIdent $3) (mergeHasSourceRegions $1 $3) }
-       | LValue '[' Exp ']' { ArrayLValue $1 $3  (mergeHasSourceRegions $1 $4) }
+       | LValue '.' identifier { RecordLValue $1 (mkIdent $3) ($1 <+> $3) }
+       | LValue '[' Exp ']' { ArrayLValue $1 $3  ($1 <+> $4) }
 
 Exp : nil { NilExpression (sourceRegion $1) }
     | integer { IntExpression (getIntFromToken $1) (sourceRegion $1) }
     | string { StringExpression (getStrFromToken $1) (sourceRegion $1) }
-    | Exp '+' Exp { OpExpression (AddOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '-' Exp { OpExpression (SubOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '*' Exp { OpExpression (MulOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '/' Exp { OpExpression (DivOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '=' Exp { OpExpression (EqOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp "<>" Exp { OpExpression (NeqOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '<' Exp { OpExpression (LtOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp "<=" Exp { OpExpression (LeOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '>' Exp { OpExpression (GtOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp ">=" Exp { OpExpression (GeOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '&' Exp { OpExpression (AndOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
-    | Exp '|' Exp { OpExpression (OrOp $ sourceRegion $2) $1 $3 (mergeHasSourceRegions $1 $3) }
+    | Exp '+' Exp { OpExpression (AddOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '-' Exp { OpExpression (SubOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '*' Exp { OpExpression (MulOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '/' Exp { OpExpression (DivOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '=' Exp { OpExpression (EqOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp "<>" Exp { OpExpression (NeqOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '<' Exp { OpExpression (LtOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp "<=" Exp { OpExpression (LeOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '>' Exp { OpExpression (GtOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp ">=" Exp { OpExpression (GeOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '&' Exp { OpExpression (AndOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+    | Exp '|' Exp { OpExpression (OrOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
     | '(' Exp ')' { $2 }
-    | '-' Exp { NegateExpression $2 (mergeHasSourceRegions $1 $2) }
-    | '(' Exps ')' { SeqExpression $2 (mergeHasSourceRegions $1 $3) }
-    | TypeId '[' Exp ']' of Exp { ArrayCreationExpression $1 $3 $6 (mergeHasSourceRegions $1 $6) }
-    | TypeId '{' FieldValues '}' { RecordCreationExpression $1 $3 (mergeHasSourceRegions $1 $4) }
+    | '-' Exp { NegateExpression $2 ($1 <+> $2) }
+    | '(' Exps ')' { SeqExpression $2 ($1 <+> $3) }
+    | identifier '[' Exp ']' of Exp { ArrayCreationExpression (mkIdent $1) $3 $6 ($1 <+> $6) }
+    | identifier '{' FieldValues '}' { RecordCreationExpression (mkIdent $1) $3 ($1 <+> $4) }
     | LValue { LValueExpression $1 (sourceRegion $1) }
-    | identifier '(' ExpList ')' { CallExpression (mkIdent $1) $3 (mergeHasSourceRegions $1 $4) }
-    | LValue ":=" Exp { AssignmentExpression $1 $3 (mergeHasSourceRegions $1 $3) }
-    | if Exp then Exp else Exp { IfExpression $2 $4 (Just $6) (mergeHasSourceRegions $1 $6) }
-    | if Exp then Exp { IfExpression $2 $4 Nothing (mergeHasSourceRegions $1 $4) }
-    | while Exp do Exp { WhileExpression $2 $4 (mergeHasSourceRegions $1 $4) }
-    | for identifier ":=" Exp to Exp do Exp { ForExpression (mkIdent $2) $4 $6 $8 (mergeHasSourceRegions $1 $8) }
+    | identifier '(' ExpList ')' { CallExpression (mkIdent $1) $3 ($1 <+> $4) }
+    | LValue ":=" Exp { AssignmentExpression $1 $3 ($1 <+> $3) }
+    | if Exp then Exp else Exp { IfExpression $2 $4 (Just $6) ($1 <+> $6) }
+    | if Exp then Exp { IfExpression $2 $4 Nothing ($1 <+> $4) }
+    | while Exp do Exp { WhileExpression $2 $4 ($1 <+> $4) }
+    | for identifier ":=" Exp to Exp do Exp { ForExpression (mkIdent $2) $4 $6 $8 ($1 <+> $8) }
     | break { BreakExpression (sourceRegion $1) }
-    | let Chunks in Exps end { LetExpression $2 $4 (mergeHasSourceRegions $1 $5) }
+    | let Chunks in Exps end { LetExpression $2 $4 ($1 <+> $5) }
 
 Exps : Exp ';' Exps { $1:$3 }
-     | Exp { [$1] }
+     | Exp ';' { [$1] }
 
-VarDecl : var identifier ":=" Exp ';' { VarDecl (mkIdent $2) Nothing $4 (mergeHasSourceRegions $1 $5) }
-             | var identifier ':' TypeId ":=" Exp ';' { VarDecl (mkIdent $2) (Just $4) $6 (mergeHasSourceRegions $1 $7) }
+VarDecl : var identifier ":=" Exp ';' { VarDecl (mkIdent $2) Nothing $4 ($1 <+> $5) }
+             | var identifier ':' identifier ":=" Exp ';' { VarDecl (mkIdent $2) (Just (mkIdent $4)) $6 ($1 <+> $7) }
 
-TypeDecl : type identifier '=' Type { TypeDecl (mkIdent $2) $4 (mergeHasSourceRegions $1 $4) }
+TypeDecl : type identifier '=' Type { TypeDecl (mkIdent $2) $4 ($1 <+> $4) }
 
-FuncDecl : function identifier '(' TypedFields ')' ':' TypeId '=' Exp { FuncDecl (mkIdent $2) $4 (Just $7) $9 (mergeHasSourceRegions $1 $9) }
-         | function identifier '(' TypedFields ')' '=' Exp { FuncDecl (mkIdent $2) $4 Nothing $7 (mergeHasSourceRegions $1 $7) }
+FuncDecl : function identifier '(' TypedFields ')' ':' identifier '=' Exp { FuncDecl (mkIdent $2) $4 (Just (mkIdent $7)) $9 ($1 <+> $9) }
+         | function identifier '(' TypedFields ')' '=' Exp { FuncDecl (mkIdent $2) $4 Nothing $7 ($1 <+> $7) }
 
-PrimitiveDecl : primitive identifier '(' TypedFields ')' ':' TypeId { PrimitiveDecl (mkIdent $2) $4 (Just $7) (mergeHasSourceRegions $1 $7) }
-              | primitive identifier '(' TypedFields ')' { PrimitiveDecl (mkIdent $2) $4 Nothing (mergeHasSourceRegions $1 $5) }
+PrimitiveDecl : primitive identifier '(' TypedFields ')' ':' identifier { PrimitiveDecl (mkIdent $2) $4 (Just (mkIdent $7)) ($1 <+> $7) }
+              | primitive identifier '(' TypedFields ')' { PrimitiveDecl (mkIdent $2) $4 Nothing ($1 <+> $5) }
 
 Chunk : TypeDecl { $1 }
       | VarDecl { $1 }
@@ -167,7 +167,7 @@ returnEither = Right
 
 parseError :: [Tok.Token] -> Either String a
 parseError [] = Left $ "Parse error at end of file"
-parseError (t:ts) = Left $ "Parse error at " <> (show $ sourceRegion t)
+parseError (t:ts) = Left $ "Parse error reading '" ++ show t ++ "' at " <> (show $ sourceRegion t)
 
 
 mkIdent :: Tok.Token -> Identifier
