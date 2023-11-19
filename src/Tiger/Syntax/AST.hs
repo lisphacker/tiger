@@ -172,7 +172,11 @@ instance HasSourceRegion Chunk where
 data Program
   = ExpressionProgram Expression !SourceRegion
   | Chunks [Chunk] !SourceRegion
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Program where
+  show (ExpressionProgram e _) = show e
+  show (Chunks cs _) = show cs
 
 instance HasSourceRegion Program where
   sourceRegion (ExpressionProgram _ r) = r

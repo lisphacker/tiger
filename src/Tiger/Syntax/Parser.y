@@ -97,8 +97,12 @@ FieldValues : identifier '=' Exp ',' FieldValues { (mkIdent $1,$3):$5 }
             | identifier '=' Exp { [(mkIdent $1,$3)] }
 
 LValue : identifier { IdLValue (mkIdent $1) (sourceRegion $1) }
-       | LValue '.' identifier { RecordLValue $1 (mkIdent $3) ($1 <+> $3) }
-       | LValue '[' Exp ']' { ArrayLValue $1 $3  ($1 <+> $4) }
+       | LValue2 { $1 }
+
+LValue2 : identifier '.' identifier { RecordLValue (mkIdLVal $1) (mkIdent $3) ($1 <+> $3) } 
+        | LValue2 '.' identifier { RecordLValue $1 (mkIdent $3) ($1 <+> $3) }
+        | identifier '[' Exp ']' { ArrayLValue (mkIdLVal $1) $3  ($1 <+> $4) }
+        | LValue2 '[' Exp ']' { ArrayLValue $1 $3  ($1 <+> $4) }
 
 Exp : nil { NilExpression (sourceRegion $1) }
     | integer { IntExpression (getIntFromToken $1) (sourceRegion $1) }
@@ -173,6 +177,10 @@ parseError (t:ts) = Left $ "Parse error reading '" ++ show t ++ "' at " <> (show
 mkIdent :: Tok.Token -> Identifier
 mkIdent (Tok.Identifier t r) = Identifier t r
 mkIdent _ = error "mkIdent: not an identifier"
+
+mkIdLVal :: Tok.Token -> LValue
+mkIdLVal (Tok.Identifier t r) = IdLValue (Identifier t r) r
+mkIdLVal _ = error "mkIdent: not an identifier"
 
 getIntFromToken :: Tok.Token -> Int
 getIntFromToken (Tok.IntLiteral i _) = i
