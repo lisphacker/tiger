@@ -135,7 +135,7 @@ Exp : nil { NilExpression (sourceRegion $1) }
     | let Chunks in Exps end { LetExpression $2 $4 ($1 <+> $5) }
 
 Exps : Exp ';' Exps { $1:$3 }
-     | Exp ';' { [$1] }
+     | Exp { [$1] }
 
 VarDecl : var identifier ":=" Exp ';' { VarDecl (mkIdent $2) Nothing $4 ($1 <+> $5) }
              | var identifier ':' identifier ":=" Exp ';' { VarDecl (mkIdent $2) (Just (mkIdent $4)) $6 ($1 <+> $7) }

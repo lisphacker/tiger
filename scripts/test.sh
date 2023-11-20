@@ -1,3 +1,3 @@
 #!/bin/sh
 
-stack test 2>&1 | tee build.log
+stack test 2>&1 | tee test.log

@@ -57,8 +57,9 @@ parseNonArithmExprSpec = describe "Parse arithmetic expressions" $ do
   test "a[10]" "a[10]"
   test "int[10] of 123" "int[10] of 123"
   test "vec{x = 1, y = 2}" "vec{x = 1,y = 2}"
-  test "(a := 2 ; c := 3;)" "(a := 2;c := 3;)"
+  test "(a := 2 ; c := 3)" "((a := 2);(c := 3))"
   test "a[10][2]" "a[10][2]"
+  test "if a <= b then a := 1 else b := 2" "if (a <= b) then (a := 1) else (b := 2)"
 
 parserUnitTestsSpec :: Spec
 parserUnitTestsSpec = describe "Parser unit tests" $ parallel $ do

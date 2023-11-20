@@ -129,8 +129,8 @@ instance Show Expression where
   show (CallExpression f args _) = show f ++ "(" ++ show args ++ ")"
   show (NegateExpression e _) = "(-(" ++ show e ++ "))"
   show (OpExpression op e1 e2 _) = "(" ++ show e1 ++ " " ++ show op ++ " " ++ show e2 ++ ")"
-  show (SeqExpression es _) = "(" ++ (foldl (\acc x -> acc ++ show x ++ ";") "" es) ++ ")"
-  show (AssignmentExpression l e _) = show l ++ " := " ++ show e
+  show (SeqExpression es _) = "(" ++ intercalate ";" (map show es) ++ ")"
+  show (AssignmentExpression l e _) = "(" ++ show l ++ " := " ++ show e ++ ")"
   show (IfExpression c t Nothing _) = "if " ++ show c ++ " then " ++ show t
   show (IfExpression c t (Just e) _) = "if " ++ show c ++ " then " ++ show t ++ " else " ++ show e
   show (WhileExpression c b _) = "while " ++ show c ++ " do " ++ show b
