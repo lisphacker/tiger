@@ -59,7 +59,15 @@ parseNonArithmExprSpec = describe "Parse arithmetic expressions" $ do
   test "vec{x = 1, y = 2}" "vec{x = 1,y = 2}"
   test "(a := 2 ; c := 3)" "((a := 2);(c := 3))"
   test "a[10][2]" "a[10][2]"
-  test "if a <= b then a := 1 else b := 2" "if (a <= b) then (a := 1) else (b := 2)"
+  test
+    "if a <= b then (print(\"true\"); a := 1) else (print(\"false\"); b := 2)"
+    "if (a <= b) then (print([\"true\"]);(a := 1)) else (print([\"false\"]);(b := 2))"
+  test
+    "while a < b do (print(a); a := a + 1)"
+    "while (a < b) do (print([a]);(a := (a + 1)))"
+  test
+    "for i := 1 to 10 do (print(i); print(i * 2))"
+    "for i := 1 to 10 do (print([i]);print([(i * 2)]))"
 
 parserUnitTestsSpec :: Spec
 parserUnitTestsSpec = describe "Parser unit tests" $ parallel $ do
