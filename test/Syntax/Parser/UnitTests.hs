@@ -45,6 +45,7 @@ arithmExprParserTestsSpec = describe "Testing arithmetic expressions parsing" $ 
     testExp "a + sin(b)" (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (CallExpression (Identifier "sin" __) [LValueExpression (IdLValue (Identifier "b" __) __) __] __) __)
     testExp "c - -b" (OpExpression (SubOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (NegateExpression (LValueExpression (IdLValue (Identifier "b" __) __) __) __) __)
     testExp "a + b < c * d" (OpExpression (LtOp __) (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (LValueExpression (IdLValue (Identifier "b" __) __) __) __) (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (LValueExpression (IdLValue (Identifier "d" __) __) __) __) __)
+    testExp "a < b & c < d" (OpExpression (AndOp __) (OpExpression (LtOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (LValueExpression (IdLValue (Identifier "b" __) __) __) __) (OpExpression (LtOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (LValueExpression (IdLValue (Identifier "d" __) __) __) __) __)
 
 testIf :: Spec
 testIf = do
@@ -168,6 +169,46 @@ testFor =
         __
     )
 
+testLet :: Spec
+testLet =
+  testExp
+    "let var x := 10 in while i > 0 do (print(i); i := i - 1) end"
+    ( LetExpression
+        [ VarDecl
+            (Identifier "x" __)
+            Nothing
+            (IntExpression 10 __)
+            __
+        ]
+        [ WhileExpression
+            ( OpExpression
+                (GtOp __)
+                (LValueExpression (IdLValue (Identifier "i" __) __) __)
+                (IntExpression 0 __)
+                __
+            )
+            ( SeqExpression
+                [ CallExpression
+                    (Identifier "print" __)
+                    [LValueExpression (IdLValue (Identifier "i" __) __) __]
+                    __
+                , AssignmentExpression
+                    (IdLValue (Identifier "i" __) __)
+                    ( OpExpression
+                        (SubOp __)
+                        (LValueExpression (IdLValue (Identifier "i" __) __) __)
+                        (IntExpression 1 __)
+                        __
+                    )
+                    __
+                ]
+                __
+            )
+            __
+        ]
+        __
+    )
+
 nonArithmExprParserTestsSpec :: Spec
 nonArithmExprParserTestsSpec = describe "Testing non-arithmetic expression parsing" $ do
   testExp "a[10]" (LValueExpression (ArrayLValue (IdLValue (Identifier "a" __) __) (IntExpression 10 __) __) __)
@@ -178,6 +219,7 @@ nonArithmExprParserTestsSpec = describe "Testing non-arithmetic expression parsi
   testIf
   testWhile
   testFor
+  testLet
 
 parserUnitTestsSpec :: Spec
 parserUnitTestsSpec = describe "Parser unit tests" $ parallel $ do

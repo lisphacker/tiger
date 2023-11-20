@@ -137,8 +137,8 @@ Exp : nil { NilExpression (sourceRegion $1) }
 Exps : Exp ';' Exps { $1:$3 }
      | Exp { [$1] }
 
-VarDecl : var identifier ":=" Exp ';' { VarDecl (mkIdent $2) Nothing $4 ($1 <+> $5) }
-             | var identifier ':' identifier ":=" Exp ';' { VarDecl (mkIdent $2) (Just (mkIdent $4)) $6 ($1 <+> $7) }
+VarDecl : var identifier ":=" Exp { VarDecl (mkIdent $2) Nothing $4 ($1 <+> $4) }
+        | var identifier ':' identifier ":=" Exp { VarDecl (mkIdent $2) (Just (mkIdent $4)) $6 ($1 <+> $6) }
 
 TypeDecl : type identifier '=' Type { TypeDecl (mkIdent $2) $4 ($1 <+> $4) }
 
