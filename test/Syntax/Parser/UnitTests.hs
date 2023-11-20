@@ -6,31 +6,19 @@ import Tiger.Syntax.AST
 import Tiger.Syntax.Parser (parseExpression)
 import Tiger.Util.SourcePos (uninitializedSourceRegion)
 
-parseExpression' :: String -> String
-parseExpression' s = case parseExpression s of
-  Left err -> "Error: " ++ show err
-  Right exp -> show exp
-
-test :: String -> String -> Spec
-test input expected = it ("Parsing '" ++ input ++ "'") $ do
-  parseExpression' input `shouldBe` expected
-
 __ = uninitializedSourceRegion
 
 testExp :: String -> Expression -> Spec
 testExp input expected = it ("Parsing '" ++ input ++ "'") $ do
   parseExpression input `shouldBe` Right expected
 
-namedTest :: String -> String -> String -> Spec
-namedTest name input expected = it name $ do
-  parseExpression' input `shouldBe` expected
-
 parseLiterals :: Spec
 parseLiterals = describe "Parse literals" $ do
-  namedTest "Parsing nil" "nil" "nil"
-  namedTest "Parsing a single integer" "1" "1"
-  namedTest "Parsing a single string" "\"abc\"" "\"abc\""
-  namedTest "Parsing an identifier" "abc" "abc"
+  testExp "nil" (NilExpression __)
+  testExp "1" (IntExpression 1 __)
+  testExp "-1" (NegateExpression (IntExpression 1 __) __)
+  testExp "\"abc\"" (StringExpression "abc" __)
+  testExp "abc" (LValueExpression (IdLValue (Identifier "abc" __) __) __)
 
 arithmExprParserTestsSpec :: Spec
 arithmExprParserTestsSpec = describe "Testing arithmetic expressions parsing" $ do
@@ -49,17 +37,14 @@ arithmExprParserTestsSpec = describe "Testing arithmetic expressions parsing" $ 
     testExp "a | b" (OpExpression (OrOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (LValueExpression (IdLValue (Identifier "b" __) __) __) __)
 
   describe "Testing operator precedence" $ do
-    test "a + b * c" "(a + (b * c))"
-    test "a * b + c" "((a * b) + c)"
-    test "a * (b + c)" "(a * (b + c))"
-    test "a + b / c" "(a + (b / c))"
-    test "a * b + c * d" "((a * b) + (c * d))"
-    test "a - b / (c * d) + e" "((a - (b / (c * d))) + e)"
-    test "a + sin(b)" "(a + sin([b]))"
-    test "a - b" "(a - b)"
-    test "-a" "(-(a))"
-    test "c - -b" "(c - (-(b)))"
-    test "a + b < c * d" "((a + b) < (c * d))"
+    testExp "a + b * c" (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "b" __) __) __) (LValueExpression (IdLValue (Identifier "c" __) __) __) __) __)
+    testExp "a * (b + c)" (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "b" __) __) __) (LValueExpression (IdLValue (Identifier "c" __) __) __) __) __)
+    testExp "a + b / c" (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (OpExpression (DivOp __) (LValueExpression (IdLValue (Identifier "b" __) __) __) (LValueExpression (IdLValue (Identifier "c" __) __) __) __) __)
+    testExp "a * b + c * d" (OpExpression (AddOp __) (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (LValueExpression (IdLValue (Identifier "b" __) __) __) __) (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (LValueExpression (IdLValue (Identifier "d" __) __) __) __) __)
+    testExp "a - b / (c * d) + e" (OpExpression (AddOp __) (OpExpression (SubOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (OpExpression (DivOp __) (LValueExpression (IdLValue (Identifier "b" __) __) __) (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (LValueExpression (IdLValue (Identifier "d" __) __) __) __) __) __) (LValueExpression (IdLValue (Identifier "e" __) __) __) __)
+    testExp "a + sin(b)" (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (CallExpression (Identifier "sin" __) [LValueExpression (IdLValue (Identifier "b" __) __) __] __) __)
+    testExp "c - -b" (OpExpression (SubOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (NegateExpression (LValueExpression (IdLValue (Identifier "b" __) __) __) __) __)
+    testExp "a + b < c * d" (OpExpression (LtOp __) (OpExpression (AddOp __) (LValueExpression (IdLValue (Identifier "a" __) __) __) (LValueExpression (IdLValue (Identifier "b" __) __) __) __) (OpExpression (MulOp __) (LValueExpression (IdLValue (Identifier "c" __) __) __) (LValueExpression (IdLValue (Identifier "d" __) __) __) __) __)
 
 testIf :: Spec
 testIf = do
