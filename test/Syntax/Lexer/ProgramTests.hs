@@ -69,7 +69,7 @@ testProgram = it "Testing program" $ do
       , Type __
       , Identifier "intArray" __
       , EqualTo __
-      , Identifier "array" __
+      , Array __
       , Of __
       , Identifier "int" __
       , Var __
@@ -167,7 +167,7 @@ testProgram = it "Testing program" $ do
       , StringLiteral "\n" __
       , RParen __
       , RParen __
-      , Identifier "function" __
+      , Function __
       , Identifier "try" __
       , LParen __
       , Identifier "c" __
@@ -292,7 +292,7 @@ testProgram = it "Testing program" $ do
       , IntLiteral 0 __
       , RParen __
       , RParen __
-      , Identifier "in" __
+      , In __
       , Identifier "try" __
       , LParen __
       , IntLiteral 0 __

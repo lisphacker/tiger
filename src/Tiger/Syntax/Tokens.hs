@@ -220,9 +220,9 @@ instance Show Token where
   show (And _) = "&"
   show (Or _) = "|"
   show (Assign _) = ":="
-  show (StringLiteral s _) = show s
-  show (IntLiteral i _) = show i
-  show (Identifier s _) = unpack s
+  show (StringLiteral s _) = "STRING<" ++ show s ++ ">"
+  show (IntLiteral i _) = "INT<" ++ show i ++ ">"
+  show (Identifier s _) = "ID<" ++ unpack s ++ ">"
   show EOF = "EOF"
   show (CommentBegin _) = "/*"
   show (CommentEnd _) = "*/"
