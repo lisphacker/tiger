@@ -8,6 +8,8 @@ import Data.String.Interpolate (i)
 import Test.Hspec
 
 import Tiger.Syntax.Lexer (tokenScan)
+import Tiger.Syntax.Tokens
+import Tiger.Util.SourcePos (SourceRegion, uninitializedSourceRegion)
 
 testEmptyProgram :: Spec
 testEmptyProgram = it "Testing empty program" $ do
@@ -42,7 +44,7 @@ let
      else for r := 0 to N-1
 	   do if row[r]=0 & diag1[r+c]=0 & diag2[r+7-c]=0
 	           then (row[r]:=1; diag1[r+c]:=1; diag2[r+7-c]:=1;
-		         col[c]:=r;
+		         col[c]:=r; 
 	                 try(c+1);
 			 row[r]:=0; diag1[r+c]:=0; diag2[r+7-c]:=0)
 
@@ -52,247 +54,250 @@ end
 |] ::
     String
 
+__ :: SourceRegion
+__ = uninitializedSourceRegion
+
 testProgram :: Spec
 testProgram = it "Testing program" $ do
-  fmap show <$> tokenScan prog
+  tokenScan prog
     `shouldBe` Right
-      [ "Let"
-      , "Var"
-      , "Identifier<N>"
-      , "Assign"
-      , "IntLiteral<8>"
-      , "Type"
-      , "Identifier<intArray>"
-      , "EqualTo"
-      , "Array"
-      , "Of"
-      , "Identifier<int>"
-      , "Var"
-      , "Identifier<row>"
-      , "Assign"
-      , "Identifier<intArray>"
-      , "LBracket"
-      , "Identifier<N>"
-      , "RBracket"
-      , "Of"
-      , "IntLiteral<0>"
-      , "Var"
-      , "Identifier<col>"
-      , "Assign"
-      , "Identifier<intArray>"
-      , "LBracket"
-      , "Identifier<N>"
-      , "RBracket"
-      , "Of"
-      , "IntLiteral<0>"
-      , "Var"
-      , "Identifier<diag1>"
-      , "Assign"
-      , "Identifier<intArray>"
-      , "LBracket"
-      , "Identifier<N>"
-      , "Plus"
-      , "Identifier<N>"
-      , "Minus"
-      , "IntLiteral<1>"
-      , "RBracket"
-      , "Of"
-      , "IntLiteral<0>"
-      , "Var"
-      , "Identifier<diag2>"
-      , "Assign"
-      , "Identifier<intArray>"
-      , "LBracket"
-      , "Identifier<N>"
-      , "Plus"
-      , "Identifier<N>"
-      , "Minus"
-      , "IntLiteral<1>"
-      , "RBracket"
-      , "Of"
-      , "IntLiteral<0>"
-      , "Function"
-      , "Identifier<printboard>"
-      , "LParen"
-      , "RParen"
-      , "EqualTo"
-      , "LParen"
-      , "For"
-      , "Identifier<i>"
-      , "Assign"
-      , "IntLiteral<0>"
-      , "To"
-      , "Identifier<N>"
-      , "Minus"
-      , "IntLiteral<1>"
-      , "Do"
-      , "LParen"
-      , "For"
-      , "Identifier<j>"
-      , "Assign"
-      , "IntLiteral<0>"
-      , "To"
-      , "Identifier<N>"
-      , "Minus"
-      , "IntLiteral<1>"
-      , "Do"
-      , "Identifier<print>"
-      , "LParen"
-      , "If"
-      , "Identifier<col>"
-      , "LBracket"
-      , "Identifier<i>"
-      , "RBracket"
-      , "EqualTo"
-      , "Identifier<j>"
-      , "Then"
-      , "StringLiteral< O>"
-      , "Else"
-      , "StringLiteral< .>"
-      , "RParen"
-      , "Semicolon"
-      , "Identifier<print>"
-      , "LParen"
-      , "StringLiteral<\n>"
-      , "RParen"
-      , "RParen"
-      , "Semicolon"
-      , "Identifier<print>"
-      , "LParen"
-      , "StringLiteral<\n>"
-      , "RParen"
-      , "RParen"
-      , "Function"
-      , "Identifier<try>"
-      , "LParen"
-      , "Identifier<c>"
-      , "Colon"
-      , "Identifier<int>"
-      , "RParen"
-      , "EqualTo"
-      , "LParen"
-      , "If"
-      , "Identifier<c>"
-      , "EqualTo"
-      , "Identifier<N>"
-      , "Then"
-      , "Identifier<printboard>"
-      , "LParen"
-      , "RParen"
-      , "Else"
-      , "For"
-      , "Identifier<r>"
-      , "Assign"
-      , "IntLiteral<0>"
-      , "To"
-      , "Identifier<N>"
-      , "Minus"
-      , "IntLiteral<1>"
-      , "Do"
-      , "If"
-      , "Identifier<row>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "RBracket"
-      , "EqualTo"
-      , "IntLiteral<0>"
-      , "And"
-      , "Identifier<diag1>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "Plus"
-      , "Identifier<c>"
-      , "RBracket"
-      , "EqualTo"
-      , "IntLiteral<0>"
-      , "And"
-      , "Identifier<diag2>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "Plus"
-      , "IntLiteral<7>"
-      , "Minus"
-      , "Identifier<c>"
-      , "RBracket"
-      , "EqualTo"
-      , "IntLiteral<0>"
-      , "Then"
-      , "LParen"
-      , "Identifier<row>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "RBracket"
-      , "Assign"
-      , "IntLiteral<1>"
-      , "Semicolon"
-      , "Identifier<diag1>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "Plus"
-      , "Identifier<c>"
-      , "RBracket"
-      , "Assign"
-      , "IntLiteral<1>"
-      , "Semicolon"
-      , "Identifier<diag2>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "Plus"
-      , "IntLiteral<7>"
-      , "Minus"
-      , "Identifier<c>"
-      , "RBracket"
-      , "Assign"
-      , "IntLiteral<1>"
-      , "Semicolon"
-      , "Identifier<col>"
-      , "LBracket"
-      , "Identifier<c>"
-      , "RBracket"
-      , "Assign"
-      , "Identifier<r>"
-      , "Semicolon"
-      , "Identifier<try>"
-      , "LParen"
-      , "Identifier<c>"
-      , "Plus"
-      , "IntLiteral<1>"
-      , "RParen"
-      , "Semicolon"
-      , "Identifier<row>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "RBracket"
-      , "Assign"
-      , "IntLiteral<0>"
-      , "Semicolon"
-      , "Identifier<diag1>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "Plus"
-      , "Identifier<c>"
-      , "RBracket"
-      , "Assign"
-      , "IntLiteral<0>"
-      , "Semicolon"
-      , "Identifier<diag2>"
-      , "LBracket"
-      , "Identifier<r>"
-      , "Plus"
-      , "IntLiteral<7>"
-      , "Minus"
-      , "Identifier<c>"
-      , "RBracket"
-      , "Assign"
-      , "IntLiteral<0>"
-      , "RParen"
-      , "RParen"
-      , "In"
-      , "Identifier<try>"
-      , "LParen"
-      , "IntLiteral<0>"
-      , "RParen"
-      , "End"
+      [ Let __
+      , Var __
+      , Identifier "N" __
+      , Assign __
+      , IntLiteral 8 __
+      , Type __
+      , Identifier "intArray" __
+      , EqualTo __
+      , Identifier "array" __
+      , Of __
+      , Identifier "int" __
+      , Var __
+      , Identifier "row" __
+      , Assign __
+      , Identifier "intArray" __
+      , LBracket __
+      , Identifier "N" __
+      , RBracket __
+      , Of __
+      , IntLiteral 0 __
+      , Var __
+      , Identifier "col" __
+      , Assign __
+      , Identifier "intArray" __
+      , LBracket __
+      , Identifier "N" __
+      , RBracket __
+      , Of __
+      , IntLiteral 0 __
+      , Var __
+      , Identifier "diag1" __
+      , Assign __
+      , Identifier "intArray" __
+      , LBracket __
+      , Identifier "N" __
+      , Plus __
+      , Identifier "N" __
+      , Minus __
+      , IntLiteral 1 __
+      , RBracket __
+      , Of __
+      , IntLiteral 0 __
+      , Var __
+      , Identifier "diag2" __
+      , Assign __
+      , Identifier "intArray" __
+      , LBracket __
+      , Identifier "N" __
+      , Plus __
+      , Identifier "N" __
+      , Minus __
+      , IntLiteral 1 __
+      , RBracket __
+      , Of __
+      , IntLiteral 0 __
+      , Function __
+      , Identifier "printboard" __
+      , LParen __
+      , RParen __
+      , EqualTo __
+      , LParen __
+      , For __
+      , Identifier "i" __
+      , Assign __
+      , IntLiteral 0 __
+      , To __
+      , Identifier "N" __
+      , Minus __
+      , IntLiteral 1 __
+      , Do __
+      , LParen __
+      , For __
+      , Identifier "j" __
+      , Assign __
+      , IntLiteral 0 __
+      , To __
+      , Identifier "N" __
+      , Minus __
+      , IntLiteral 1 __
+      , Do __
+      , Identifier "print" __
+      , LParen __
+      , If __
+      , Identifier "col" __
+      , LBracket __
+      , Identifier "i" __
+      , RBracket __
+      , EqualTo __
+      , Identifier "j" __
+      , Then __
+      , StringLiteral " O" __
+      , Else __
+      , StringLiteral " ." __
+      , RParen __
+      , Semicolon __
+      , Identifier "print" __
+      , LParen __
+      , StringLiteral "\n" __
+      , RParen __
+      , RParen __
+      , Semicolon __
+      , Identifier "print" __
+      , LParen __
+      , StringLiteral "\n" __
+      , RParen __
+      , RParen __
+      , Identifier "function" __
+      , Identifier "try" __
+      , LParen __
+      , Identifier "c" __
+      , Colon __
+      , Identifier "int" __
+      , RParen __
+      , EqualTo __
+      , LParen __
+      , If __
+      , Identifier "c" __
+      , EqualTo __
+      , Identifier "N" __
+      , Then __
+      , Identifier "printboard" __
+      , LParen __
+      , RParen __
+      , Else __
+      , For __
+      , Identifier "r" __
+      , Assign __
+      , IntLiteral 0 __
+      , To __
+      , Identifier "N" __
+      , Minus __
+      , IntLiteral 1 __
+      , Do __
+      , If __
+      , Identifier "row" __
+      , LBracket __
+      , Identifier "r" __
+      , RBracket __
+      , EqualTo __
+      , IntLiteral 0 __
+      , And __
+      , Identifier "diag1" __
+      , LBracket __
+      , Identifier "r" __
+      , Plus __
+      , Identifier "c" __
+      , RBracket __
+      , EqualTo __
+      , IntLiteral 0 __
+      , And __
+      , Identifier "diag2" __
+      , LBracket __
+      , Identifier "r" __
+      , Plus __
+      , IntLiteral 7 __
+      , Minus __
+      , Identifier "c" __
+      , RBracket __
+      , EqualTo __
+      , IntLiteral 0 __
+      , Then __
+      , LParen __
+      , Identifier "row" __
+      , LBracket __
+      , Identifier "r" __
+      , RBracket __
+      , Assign __
+      , IntLiteral 1 __
+      , Semicolon __
+      , Identifier "diag1" __
+      , LBracket __
+      , Identifier "r" __
+      , Plus __
+      , Identifier "c" __
+      , RBracket __
+      , Assign __
+      , IntLiteral 1 __
+      , Semicolon __
+      , Identifier "diag2" __
+      , LBracket __
+      , Identifier "r" __
+      , Plus __
+      , IntLiteral 7 __
+      , Minus __
+      , Identifier "c" __
+      , RBracket __
+      , Assign __
+      , IntLiteral 1 __
+      , Semicolon __
+      , Identifier "col" __
+      , LBracket __
+      , Identifier "c" __
+      , RBracket __
+      , Assign __
+      , Identifier "r" __
+      , Semicolon __
+      , Identifier "try" __
+      , LParen __
+      , Identifier "c" __
+      , Plus __
+      , IntLiteral 1 __
+      , RParen __
+      , Semicolon __
+      , Identifier "row" __
+      , LBracket __
+      , Identifier "r" __
+      , RBracket __
+      , Assign __
+      , IntLiteral 0 __
+      , Semicolon __
+      , Identifier "diag1" __
+      , LBracket __
+      , Identifier "r" __
+      , Plus __
+      , Identifier "c" __
+      , RBracket __
+      , Assign __
+      , IntLiteral 0 __
+      , Semicolon __
+      , Identifier "diag2" __
+      , LBracket __
+      , Identifier "r" __
+      , Plus __
+      , IntLiteral 7 __
+      , Minus __
+      , Identifier "c" __
+      , RBracket __
+      , Assign __
+      , IntLiteral 0 __
+      , RParen __
+      , RParen __
+      , Identifier "in" __
+      , Identifier "try" __
+      , LParen __
+      , IntLiteral 0 __
+      , RParen __
+      , End __
       ]
 
 programLexerTestsSpec :: Spec

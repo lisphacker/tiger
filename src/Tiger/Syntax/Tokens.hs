@@ -62,7 +62,62 @@ data Token
   | -- Comments
     CommentBegin !SourceRegion
   | CommentEnd !SourceRegion
-  deriving (Eq, Ord)
+  deriving (Ord)
+
+instance Eq Token where
+  (Array _) == (Array _) = True
+  (If _) == (If _) = True
+  (Then _) == (Then _) = True
+  (Else _) == (Else _) = True
+  (While _) == (While _) = True
+  (For _) == (For _) = True
+  (To _) == (To _) = True
+  (Do _) == (Do _) = True
+  (Let _) == (Let _) = True
+  (In _) == (In _) = True
+  (End _) == (End _) = True
+  (Of _) == (Of _) = True
+  (Break _) == (Break _) = True
+  (Nil _) == (Nil _) = True
+  (Function _) == (Function _) = True
+  (Var _) == (Var _) = True
+  (Type _) == (Type _) = True
+  (Import _) == (Import _) = True
+  (Primitive _) == (Primitive _) = True
+  (Class _) == (Class _) = True
+  (Extends _) == (Extends _) = True
+  (Method _) == (Method _) = True
+  (New _) == (New _) = True
+  (Comma _) == (Comma _) = True
+  (Colon _) == (Colon _) = True
+  (Semicolon _) == (Semicolon _) = True
+  (LParen _) == (LParen _) = True
+  (RParen _) == (RParen _) = True
+  (LBracket _) == (LBracket _) = True
+  (RBracket _) == (RBracket _) = True
+  (LBrace _) == (LBrace _) = True
+  (RBrace _) == (RBrace _) = True
+  (Dot _) == (Dot _) = True
+  (Plus _) == (Plus _) = True
+  (Minus _) == (Minus _) = True
+  (Star _) == (Star _) = True
+  (Slash _) == (Slash _) = True
+  (EqualTo _) == (EqualTo _) = True
+  (NotEqualTo _) == (NotEqualTo _) = True
+  (LessThan _) == (LessThan _) = True
+  (LessThanOrEqualTo _) == (LessThanOrEqualTo _) = True
+  (GreaterThan _) == (GreaterThan _) = True
+  (GreaterThanOrEqualTo _) == (GreaterThanOrEqualTo _) = True
+  (And _) == (And _) = True
+  (Or _) == (Or _) = True
+  (Assign _) == (Assign _) = True
+  (StringLiteral s1 _) == (StringLiteral s2 _) = s1 == s2
+  (IntLiteral i1 _) == (IntLiteral i2 _) = i1 == i2
+  (Identifier s1 _) == (Identifier s2 _) = s1 == s2
+  EOF == EOF = True
+  (CommentBegin _) == (CommentBegin _) = True
+  (CommentEnd _) == (CommentEnd _) = True
+  _ == _ = False
 
 instance HasSourceRegion Token where
   sourceRegion (Array r) = r
