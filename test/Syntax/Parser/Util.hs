@@ -5,8 +5,9 @@ import Test.Hspec
 
 import Tiger.Syntax.AST
 import Tiger.Syntax.Parser (parseExpression, parseProgram)
-import Tiger.Util.SourcePos (uninitializedSourceRegion)
+import Tiger.Util.SourcePos (SourceRegion, uninitializedSourceRegion)
 
+__ :: SourceRegion
 __ = uninitializedSourceRegion
 
 testExp :: String -> Expression -> Spec

@@ -3,8 +3,6 @@ module Syntax.Parser.UnitTests where
 import Test.Hspec
 
 import Tiger.Syntax.AST
-import Tiger.Syntax.Parser (parseExpression)
-import Tiger.Util.SourcePos (uninitializedSourceRegion)
 
 import Syntax.Parser.Util
 

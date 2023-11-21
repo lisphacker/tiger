@@ -34,7 +34,7 @@ mergeSpans (Span (SourceLocation (-1) _ _) _) s = s
 mergeSpans (Span _ (SourceLocation (-1) _ _)) s = s
 mergeSpans s (Span (SourceLocation (-1) _ _) _) = s
 mergeSpans s (Span _ (SourceLocation (-1) _ _)) = s
-mergeSpans (Span s1 e1) (Span s2 e2) = Span (min s1 e1) (max e1 e2)
+mergeSpans (Span s1 e1) (Span _ e2) = Span (min s1 e1) (max e1 e2)
 
 addHorizontalOffset :: Int -> SourceLocation -> SourceLocation
 addHorizontalOffset l src = src{srcLocOffset = srcLocOffset src + l, srcLocColumn = srcLocColumn src + l}

@@ -1,7 +1,7 @@
 module Tiger.Syntax.Tokens where
 
 import Data.Text (Text, unpack)
-import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
+import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, uninitializedSourceRegion)
 
 data Token
   = -- keywords
@@ -114,6 +114,9 @@ instance HasSourceRegion Token where
   sourceRegion (StringLiteral _ r) = r
   sourceRegion (IntLiteral _ r) = r
   sourceRegion (Identifier _ r) = r
+  sourceRegion EOF = uninitializedSourceRegion
+  sourceRegion (CommentBegin r) = r
+  sourceRegion (CommentEnd r) = r
 
 instance Show Token where
   show (Array _) = "array"

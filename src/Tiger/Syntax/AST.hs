@@ -42,6 +42,7 @@ instance Eq Type where
   (TypeAlias ti1 _) == (TypeAlias ti2 _) = ti1 == ti2
   (RecordType fs1 _) == (RecordType fs2 _) = fs1 == fs2
   (ArrayType ti1 _) == (ArrayType ti2 _) = ti1 == ti2
+  _ == _ = False
 
 instance Show Type where
   show (TypeAlias ti _) = show ti
@@ -64,6 +65,7 @@ instance Eq LValue where
   (IdLValue i1 _) == (IdLValue i2 _) = i1 == i2
   (RecordLValue l1 i1 _) == (RecordLValue l2 i2 _) = l1 == l2 && i1 == i2
   (ArrayLValue l1 e1 _) == (ArrayLValue l2 e2 _) = l1 == l2 && e1 == e2
+  _ == _ = False
 
 instance Show LValue where
   show (IdLValue i _) = show i
@@ -225,6 +227,7 @@ instance Eq Chunk where
   (FuncDecl i1 fs1 r1 e1 _) == (FuncDecl i2 fs2 r2 e2 _) = i1 == i2 && fs1 == fs2 && r1 == r2 && e1 == e2
   (PrimitiveDecl i1 fs1 r1 _) == (PrimitiveDecl i2 fs2 r2 _) = i1 == i2 && fs1 == fs2 && r1 == r2
   (VarDecl i1 t1 e1 _) == (VarDecl i2 t2 e2 _) = i1 == i2 && t1 == t2 && e1 == e2
+  _ == _ = False
 
 instance HasSourceRegion Chunk where
   sourceRegion (TypeDecl _ _ r) = r

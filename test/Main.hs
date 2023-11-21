@@ -23,9 +23,9 @@ main = do
 
 spec :: Spec
 spec = do
-  -- describe "Lexer tests" $ do
-  --   singleTokenLexerTestsSpec
-  --   programLexerTestsSpec
+  describe "Lexer tests" $ do
+    singleTokenLexerTestsSpec
+    programLexerTestsSpec
   describe "Parser tests" $ do
     parserUnitTestsSpec
     parserProgramTestsSpec

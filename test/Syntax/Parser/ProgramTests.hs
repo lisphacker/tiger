@@ -3,15 +3,11 @@
 
 module Syntax.Parser.ProgramTests where
 
-import Control.Monad (forM)
-
 import Data.String.Interpolate (i)
 
 import Test.Hspec
 
 import Tiger.Syntax.AST
-import Tiger.Syntax.Parser (parseExpression)
-import Tiger.Util.SourcePos (uninitializedSourceRegion)
 
 import Syntax.Parser.Util
 
@@ -155,112 +151,6 @@ testPrograms :: [(String, String, Program)]
 testPrograms =
   [ ("program1", testProgram1, expectedParseProgram1)
   ]
-
-{-
-testProgram1 :: Spec
-testProgram1 = do
-  testProgram
-    "program1"
-    program1
-    ( LetExpression
-        [ TypeDecl
-            (Identifier "vec2" __)
-            ( RecordType
-                [ TypedField (Identifier "x" __) (TypeAlias (Identifier "int" __) __) __
-                , TypedField (Identifier "y" __) (TypeAlias (Identifier "int" __) __) __
-                ]
-                __
-            )
-            __
-        , TypeDecl
-            Identifier "vec2Array" __)
-            (ArrayType (TypeAlias (Identifier "vec2" __) __) __)
-            __
-        , TypeDecl
-            (Identifier "intArray" __)
-            (ArrayType (TypeAlias (Identifier "int" __) __) __)
-            __
-        , VarDecl
-            (Identifier "a" __)
-            (Just (Identifier "vec2Array" __))
-            ( ArrayCreationExpression
-                (Identifier "vec2" __)
-                (IntLiteral 10 __)
-                ( RecordCreation
-                    (Identifier "vec2" __)
-                    [ (Identifier "x" __, IntLiteral 0 __)
-                    , (Identifier "y" __, IntLiteral 0 __)
-                    ]
-                    __
-                )
-                __
-            )
-            __
-        , VarDecl
-            (Identifier "m" __)
-            (Just (Identifier "intArray" __))
-            ( ArrayCreation
-                (Identifier "int" __)
-                (IntLiteral 10 __)
-                (IntLiteral 0 __)
-                __
-            )
-            __
-        , VarDecl (Identifier "i" __) (Just (Identifier "int" __)) (IntLiteral 0 __) __
-        ]
-
-        ( SeqExpression
-            [ WhileExpression
-                ( BinaryExpression
-                    LessThan
-                    (IdentifierExpression (Identifier "i" __) __)
-                    (IntLiteral 10 __)
-                    __
-                )
-                ( SeqExpression
-                    [ AssignmentExpression
-                        ( LValueExpression
-                            ( RecordFieldLValue
-                                ( ArrayLValue
-                                    (IdentifierLValue (Identifier "a" __) __)
-                                    (IdentifierExpression (Identifier "i" __) __)
-                                    __
-                                )
-                                (Identifier "x" __)
-                                __
-                            )
-                        )
-                        (IdentifierExpression (Identifier "i" __) __)
-                        __
-                    , AssignmentExpression
-                        ( LValueExpression
-                            ( RecordFieldLValue
-                                ( ArrayLValue
-                                    (IdentifierLValue (Identifier "a" __) __)
-                                    (IdentifierExpression (Identifier "i" __) __)
-                                    __
-                                )
-                                (Identifier "i" __)
-                                __
-                            )
-                        )
-                        ( OpExpression
-                            Multiply
-                            (IdentifierExpression (Identifier "i" __) __)
-                            (IdentifierExpression (Identifier "i" __) __)
-                            __
-                        )
-                        __
-                    ]
-                    __
-                )
-            , LValueExpression (IdLValue (Identifier "i" __) __)
-            ]
-            __
-        )
-        __
-      )
--}
 
 parserProgramTestsSpec :: Spec
 parserProgramTestsSpec = describe "Testing program parsing" $ do
