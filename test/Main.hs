@@ -11,8 +11,10 @@ import Test.Tasty qualified
 import Test.Hspec
 import Test.Tasty.Hspec
 
-import Lexer.ProgramTests (programLexerTestsSpec)
-import Lexer.SingleTokenTests (singleTokenLexerTestsSpec)
+import Syntax.Lexer.ProgramTests (programLexerTestsSpec)
+import Syntax.Lexer.SingleTokenTests (singleTokenLexerTestsSpec)
+import Syntax.Parser.UnitTests (parserUnitTestsSpec)
+import Syntax.Parser.ProgramTests (parserProgramTestsSpec)
 
 main :: IO ()
 main = do
@@ -21,5 +23,9 @@ main = do
 
 spec :: Spec
 spec = do
-  singleTokenLexerTestsSpec
-  programLexerTestsSpec
+  describe "Lexer tests" $ do
+    singleTokenLexerTestsSpec
+    programLexerTestsSpec
+  describe "Parser tests" $ do
+    parserUnitTestsSpec
+    parserProgramTestsSpec

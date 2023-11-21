@@ -1,4 +1,4 @@
-module Lexer.SingleTokenTests where
+module Syntax.Lexer.SingleTokenTests where
 
 import Control.Monad (forM_)
 import Prelude hiding (id)
