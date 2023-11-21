@@ -14,6 +14,7 @@ import Test.Tasty.Hspec
 import Syntax.Lexer.ProgramTests (programLexerTestsSpec)
 import Syntax.Lexer.SingleTokenTests (singleTokenLexerTestsSpec)
 import Syntax.Parser.UnitTests (parserUnitTestsSpec)
+import Syntax.Parser.ProgramTests (parserProgramTestsSpec)
 
 main :: IO ()
 main = do
@@ -27,3 +28,4 @@ spec = do
   --   programLexerTestsSpec
   describe "Parser tests" $ do
     parserUnitTestsSpec
+    parserProgramTestsSpec

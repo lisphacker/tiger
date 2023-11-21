@@ -6,11 +6,7 @@ import Tiger.Syntax.AST
 import Tiger.Syntax.Parser (parseExpression)
 import Tiger.Util.SourcePos (uninitializedSourceRegion)
 
-__ = uninitializedSourceRegion
-
-testExp :: String -> Expression -> Spec
-testExp input expected = it ("Parsing '" ++ input ++ "'") $ do
-  parseExpression input `shouldBe` Right expected
+import Syntax.Parser.Util
 
 parseLiterals :: Spec
 parseLiterals = describe "Parse literals" $ do
