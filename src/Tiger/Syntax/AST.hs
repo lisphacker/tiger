@@ -7,7 +7,7 @@ import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
 class (HasSourceRegion a) => ASTNode a
 
 printToken :: String -> String -> String
-printToken t a = a
+printToken _ a = a
 
 -- printToken s a = s ++ "<" ++ show a ++ ">"
 

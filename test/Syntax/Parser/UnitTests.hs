@@ -123,7 +123,7 @@ testWhile =
                 [mkIdLValueExp "a"]
                 __
             , AssignmentExpression
-                (IdLValue (Identifier "a" __) __)
+                (mkIdLValue "a")
                 ( OpExpression
                     (AddOp __)
                     (mkIdLValueExp "a")
@@ -148,13 +148,13 @@ testFor =
         ( SeqExpression
             [ CallExpression
                 (Identifier "print" __)
-                [LValueExpression (IdLValue (Identifier "i" __) __) __]
+                [mkIdLValueExp "i"]
                 __
             , CallExpression
                 (Identifier "print" __)
                 [ OpExpression
                     (MulOp __)
-                    (LValueExpression (IdLValue (Identifier "i" __) __) __)
+                    (mkIdLValueExp "i")
                     (IntExpression 2 __)
                     __
                 ]
@@ -179,20 +179,20 @@ testLet =
         [ WhileExpression
             ( OpExpression
                 (GtOp __)
-                (LValueExpression (IdLValue (Identifier "i" __) __) __)
+                (mkIdLValueExp "i")
                 (IntExpression 0 __)
                 __
             )
             ( SeqExpression
                 [ CallExpression
                     (Identifier "print" __)
-                    [LValueExpression (IdLValue (Identifier "i" __) __) __]
+                    [mkIdLValueExp "i"]
                     __
                 , AssignmentExpression
                     (IdLValue (Identifier "i" __) __)
                     ( OpExpression
                         (SubOp __)
-                        (LValueExpression (IdLValue (Identifier "i" __) __) __)
+                        (mkIdLValueExp "i")
                         (IntExpression 1 __)
                         __
                     )
@@ -207,11 +207,11 @@ testLet =
 
 nonArithmExprParserTestsSpec :: Spec
 nonArithmExprParserTestsSpec = describe "Testing non-arithmetic expression parsing" $ do
-  testExp "a[10]" (LValueExpression (ArrayLValue (IdLValue (Identifier "a" __) __) (IntExpression 10 __) __) __)
+  testExp "a[10]" (LValueExpression (ArrayLValue (mkIdLValue "a") (IntExpression 10 __) __) __)
   testExp "int[10] of 123" (ArrayCreationExpression (Identifier "int" __) (IntExpression 10 __) (IntExpression 123 __) __)
   testExp "vec{x = 1, y = 2}" (RecordCreationExpression (Identifier "vec" __) [((Identifier "x" __), IntExpression 1 __), ((Identifier "y" __), IntExpression 2 __)] __)
-  testExp "(a := 2 ; c := 3)" (SeqExpression [AssignmentExpression (IdLValue (Identifier "a" __) __) (IntExpression 2 __) __, AssignmentExpression (IdLValue (Identifier "c" __) __) (IntExpression 3 __) __] __)
-  testExp "a[10][2]" (LValueExpression (ArrayLValue (ArrayLValue (IdLValue (Identifier "a" __) __) (IntExpression 10 __) __) (IntExpression 2 __) __) __)
+  testExp "(a := 2 ; c := 3)" (SeqExpression [AssignmentExpression (mkIdLValue "a") (IntExpression 2 __) __, AssignmentExpression (IdLValue (Identifier "c" __) __) (IntExpression 3 __) __] __)
+  testExp "a[10][2]" (LValueExpression (ArrayLValue (ArrayLValue (mkIdLValue "a") (IntExpression 10 __) __) (IntExpression 2 __) __) __)
   testIf
   testWhile
   testFor
