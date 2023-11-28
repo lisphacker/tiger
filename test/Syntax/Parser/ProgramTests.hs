@@ -10,6 +10,7 @@ import Test.Hspec
 import Tiger.Syntax.AST
 
 import Syntax.Parser.Util
+import Tiger.Util.SourcePos (SourceSpan (..))
 
 testProgram1 :: String
 testProgram1 =
@@ -35,119 +36,116 @@ in
 end
 |]
 
-expectedParseProgram1 :: Program
+expectedParseProgram1 :: Expression SourceSpan
 expectedParseProgram1 =
-  ExpressionProgram
-    ( LetExpression
-        [ TypeDecl
-            (Identifier "vec2" __)
-            ( RecordType
-                [ TypedField (Identifier "x" __) (Identifier "int" __) __
-                , TypedField (Identifier "y" __) (Identifier "int" __) __
+  LetExpression
+    [ TypeDecl
+        (Identifier "vec2" __)
+        ( RecordType
+            [ TypedField (Identifier "x" __) (Identifier "int" __) __
+            , TypedField (Identifier "y" __) (Identifier "int" __) __
+            ]
+            __
+        )
+        __
+    , TypeDecl
+        (Identifier "vec2Array" __)
+        (ArrayType (Identifier "vec2" __) __)
+        __
+    , TypeDecl
+        (Identifier "intArray" __)
+        (ArrayType (Identifier "int" __) __)
+        __
+    , VarDecl
+        (Identifier "a" __)
+        Nothing
+        ( ArrayCreationExpression
+            (Identifier "vec2array" __)
+            (IntExpression 10 __)
+            ( RecordCreationExpression
+                (Identifier "vec2" __)
+                [ (Identifier "x" __, IntExpression 0 __)
+                , (Identifier "y" __, IntExpression 0 __)
                 ]
                 __
             )
             __
-        , TypeDecl
-            (Identifier "vec2Array" __)
-            (ArrayType (Identifier "vec2" __) __)
-            __
-        , TypeDecl
+        )
+        __
+    , VarDecl
+        (Identifier "m" __)
+        Nothing
+        ( ArrayCreationExpression
             (Identifier "intArray" __)
-            (ArrayType (Identifier "int" __) __)
+            (IntExpression 10 __)
+            (IntExpression 0 __)
             __
-        , VarDecl
-            (Identifier "a" __)
-            Nothing
-            ( ArrayCreationExpression
-                (Identifier "vec2array" __)
-                (IntExpression 10 __)
-                ( RecordCreationExpression
-                    (Identifier "vec2" __)
-                    [ (Identifier "x" __, IntExpression 0 __)
-                    , (Identifier "y" __, IntExpression 0 __)
+        )
+        __
+    , VarDecl (Identifier "i" __) Nothing (IntExpression 0 __) __
+    ]
+    [ WhileExpression
+        ( OpExpression
+            LtOp
+            (mkIdLValueExp "i")
+            (IntExpression 10 __)
+            __
+        )
+        ( SeqExpression
+            [ AssignmentExpression
+                ( mkRecElOfArrLValue "a" "i" "x"
+                )
+                (mkIdLValueExp "i")
+                __
+            , AssignmentExpression
+                ( mkRecElOfArrLValue "a" "i" "y"
+                )
+                ( OpExpression
+                    MulOp
+                    (mkIdLValueExp "i")
+                    (mkIdLValueExp "i")
+                    __
+                )
+                __
+            , AssignmentExpression
+                (IdLValue (Identifier "i" __) __)
+                ( OpExpression
+                    AddOp
+                    (mkIdLValueExp "i")
+                    (IntExpression 1 __)
+                    __
+                )
+                __
+            ]
+            __
+        )
+        __
+    , ForExpression
+        (Identifier "j" __)
+        (IntExpression 0 __)
+        (IntExpression 9 __)
+        ( SeqExpression
+            [ AssignmentExpression
+                ( mkArrLValue "m" "j"
+                )
+                ( CallExpression
+                    (Identifier "modSq" __)
+                    [ mkRecElOfArrLValueExp "a" "j" "x"
+                    , mkRecElOfArrLValueExp "a" "j" "y"
                     ]
                     __
                 )
                 __
-            )
+            , CallExpression (Identifier "print" __) [mkArrLValueExp "m" "j"] __
+            ]
             __
-        , VarDecl
-            (Identifier "m" __)
-            Nothing
-            ( ArrayCreationExpression
-                (Identifier "intArray" __)
-                (IntExpression 10 __)
-                (IntExpression 0 __)
-                __
-            )
-            __
-        , VarDecl (Identifier "i" __) Nothing (IntExpression 0 __) __
-        ]
-        [ WhileExpression
-            ( OpExpression
-                (LtOp __)
-                (mkIdLValueExp "i")
-                (IntExpression 10 __)
-                __
-            )
-            ( SeqExpression
-                [ AssignmentExpression
-                    ( mkRecElOfArrLValue "a" "i" "x"
-                    )
-                    (mkIdLValueExp "i")
-                    __
-                , AssignmentExpression
-                    ( mkRecElOfArrLValue "a" "i" "y"
-                    )
-                    ( OpExpression
-                        (MulOp __)
-                        (mkIdLValueExp "i")
-                        (mkIdLValueExp "i")
-                        __
-                    )
-                    __
-                , AssignmentExpression
-                    (IdLValue (Identifier "i" __) __)
-                    ( OpExpression
-                        (AddOp __)
-                        (mkIdLValueExp "i")
-                        (IntExpression 1 __)
-                        __
-                    )
-                    __
-                ]
-                __
-            )
-            __
-        , ForExpression
-            (Identifier "j" __)
-            (IntExpression 0 __)
-            (IntExpression 9 __)
-            ( SeqExpression
-                [ AssignmentExpression
-                    ( mkArrLValue "m" "j"
-                    )
-                    ( CallExpression
-                        (Identifier "modSq" __)
-                        [ mkRecElOfArrLValueExp "a" "j" "x"
-                        , mkRecElOfArrLValueExp "a" "j" "y"
-                        ]
-                        __
-                    )
-                    __
-                , CallExpression (Identifier "print" __) [mkArrLValueExp "m" "j"] __
-                ]
-                __
-            )
-            __
-        , (mkIdLValueExp "m")
-        ]
+        )
         __
-    )
+    , (mkIdLValueExp "m")
+    ]
     __
 
-testPrograms :: [(String, String, Program)]
+testPrograms :: [(String, String, Expression SourceSpan)]
 testPrograms =
   [ ("program1", testProgram1, expectedParseProgram1)
   ]

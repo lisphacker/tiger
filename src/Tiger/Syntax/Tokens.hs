@@ -222,3 +222,7 @@ instance Spanned Token where
   getSpan (Assign s) = s
   getSpan (StringLiteral _ s) = s
   getSpan (IntLiteral _ s) = s
+  getSpan (Identifier _ s) = s
+  getSpan EOF = error "EOF has no span"
+  getSpan (CommentBegin s) = s
+  getSpan (CommentEnd s) = s

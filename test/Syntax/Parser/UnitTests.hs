@@ -17,29 +17,29 @@ parseLiterals = describe "Parse literals" $ do
 arithmExprParserTestsSpec :: Spec
 arithmExprParserTestsSpec = describe "Testing arithmetic expressions parsing" $ do
   describe "Testing operator parsing" $ do
-    testExp "a + b" (OpExpression (AddOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a - b" (OpExpression (SubOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a * b" (OpExpression (MulOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a / b" (OpExpression (DivOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a = b" (OpExpression (EqOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a <> b" (OpExpression (NeqOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a < b" (OpExpression (LtOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a > b" (OpExpression (GtOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a <= b" (OpExpression (LeOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a >= b" (OpExpression (GeOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a & b" (OpExpression (AndOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
-    testExp "a | b" (OpExpression (OrOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a + b" (OpExpression AddOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a - b" (OpExpression SubOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a * b" (OpExpression MulOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a / b" (OpExpression DivOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a = b" (OpExpression EqOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a <> b" (OpExpression NeqOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a < b" (OpExpression LtOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a > b" (OpExpression GtOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a <= b" (OpExpression LeOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a >= b" (OpExpression GeOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a & b" (OpExpression AndOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
+    testExp "a | b" (OpExpression OrOp (mkIdLValueExp "a") (mkIdLValueExp "b") __)
 
   describe "Testing operator precedence" $ do
-    testExp "a + b * c" (OpExpression (AddOp __) (mkIdLValueExp "a") (OpExpression (MulOp __) (mkIdLValueExp "b") (mkIdLValueExp "c") __) __)
-    testExp "a * (b + c)" (OpExpression (MulOp __) (mkIdLValueExp "a") (OpExpression (AddOp __) (mkIdLValueExp "b") (mkIdLValueExp "c") __) __)
-    testExp "a + b / c" (OpExpression (AddOp __) (mkIdLValueExp "a") (OpExpression (DivOp __) (mkIdLValueExp "b") (mkIdLValueExp "c") __) __)
-    testExp "a * b + c * d" (OpExpression (AddOp __) (OpExpression (MulOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __) (OpExpression (MulOp __) (mkIdLValueExp "c") (mkIdLValueExp "d") __) __)
-    testExp "a - b / (c * d) + e" (OpExpression (AddOp __) (OpExpression (SubOp __) (mkIdLValueExp "a") (OpExpression (DivOp __) (mkIdLValueExp "b") (OpExpression (MulOp __) (mkIdLValueExp "c") (mkIdLValueExp "d") __) __) __) (LValueExpression (IdLValue (Identifier "e" __) __) __) __)
-    testExp "a + sin(b)" (OpExpression (AddOp __) (mkIdLValueExp "a") (CallExpression (Identifier "sin" __) [mkIdLValueExp "b"] __) __)
-    testExp "c - -b" (OpExpression (SubOp __) (mkIdLValueExp "c") (NegateExpression (mkIdLValueExp "b") __) __)
-    testExp "a + b < c * d" (OpExpression (LtOp __) (OpExpression (AddOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __) (OpExpression (MulOp __) (mkIdLValueExp "c") (mkIdLValueExp "d") __) __)
-    testExp "a < b & c < d" (OpExpression (AndOp __) (OpExpression (LtOp __) (mkIdLValueExp "a") (mkIdLValueExp "b") __) (OpExpression (LtOp __) (mkIdLValueExp "c") (mkIdLValueExp "d") __) __)
+    testExp "a + b * c" (OpExpression AddOp (mkIdLValueExp "a") (OpExpression MulOp (mkIdLValueExp "b") (mkIdLValueExp "c") __) __)
+    testExp "a * (b + c)" (OpExpression MulOp (mkIdLValueExp "a") (OpExpression AddOp (mkIdLValueExp "b") (mkIdLValueExp "c") __) __)
+    testExp "a + b / c" (OpExpression AddOp (mkIdLValueExp "a") (OpExpression DivOp (mkIdLValueExp "b") (mkIdLValueExp "c") __) __)
+    testExp "a * b + c * d" (OpExpression AddOp (OpExpression MulOp (mkIdLValueExp "a") (mkIdLValueExp "b") __) (OpExpression MulOp (mkIdLValueExp "c") (mkIdLValueExp "d") __) __)
+    testExp "a - b / (c * d) + e" (OpExpression AddOp (OpExpression SubOp (mkIdLValueExp "a") (OpExpression DivOp (mkIdLValueExp "b") (OpExpression MulOp (mkIdLValueExp "c") (mkIdLValueExp "d") __) __) __) (LValueExpression (IdLValue (Identifier "e" __) __) __) __)
+    testExp "a + sin(b)" (OpExpression AddOp (mkIdLValueExp "a") (CallExpression (Identifier "sin" __) [mkIdLValueExp "b"] __) __)
+    testExp "c - -b" (OpExpression SubOp (mkIdLValueExp "c") (NegateExpression (mkIdLValueExp "b") __) __)
+    testExp "a + b < c * d" (OpExpression LtOp (OpExpression AddOp (mkIdLValueExp "a") (mkIdLValueExp "b") __) (OpExpression MulOp (mkIdLValueExp "c") (mkIdLValueExp "d") __) __)
+    testExp "a < b & c < d" (OpExpression AndOp (OpExpression LtOp (mkIdLValueExp "a") (mkIdLValueExp "b") __) (OpExpression LtOp (mkIdLValueExp "c") (mkIdLValueExp "d") __) __)
 
 testIf :: Spec
 testIf = do
@@ -47,7 +47,7 @@ testIf = do
     "if a <= b then (print(\"true\"); a := 1) else (print(\"false\"); b := 2)"
     ( IfExpression
         ( OpExpression
-            (LeOp __)
+            LeOp
             (mkIdLValueExp "a")
             (mkIdLValueExp "b")
             __
@@ -84,14 +84,14 @@ testIf = do
     "if a > 10 then if a > 2 then 2 else 3"
     ( IfExpression
         ( OpExpression
-            (GtOp __)
+            GtOp
             (mkIdLValueExp "a")
             (IntExpression 10 __)
             __
         )
         ( IfExpression
             ( OpExpression
-                (GtOp __)
+                GtOp
                 (mkIdLValueExp "a")
                 (IntExpression 2 __)
                 __
@@ -110,7 +110,7 @@ testWhile =
     "while a < b do (print(a); a := a + 1)"
     ( WhileExpression
         ( OpExpression
-            (LtOp __)
+            LtOp
             (mkIdLValueExp "a")
             (mkIdLValueExp "b")
             __
@@ -123,7 +123,7 @@ testWhile =
             , AssignmentExpression
                 (mkIdLValue "a")
                 ( OpExpression
-                    (AddOp __)
+                    AddOp
                     (mkIdLValueExp "a")
                     (IntExpression 1 __)
                     __
@@ -151,7 +151,7 @@ testFor =
             , CallExpression
                 (Identifier "print" __)
                 [ OpExpression
-                    (MulOp __)
+                    MulOp
                     (mkIdLValueExp "i")
                     (IntExpression 2 __)
                     __
@@ -176,7 +176,7 @@ testLet =
         ]
         [ WhileExpression
             ( OpExpression
-                (GtOp __)
+                GtOp
                 (mkIdLValueExp "i")
                 (IntExpression 0 __)
                 __
@@ -189,7 +189,7 @@ testLet =
                 , AssignmentExpression
                     (IdLValue (Identifier "i" __) __)
                     ( OpExpression
-                        (SubOp __)
+                        SubOp
                         (mkIdLValueExp "i")
                         (IntExpression 1 __)
                         __

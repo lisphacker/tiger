@@ -2,7 +2,6 @@ module Tiger.Syntax.AST where
 
 import Data.List (intercalate)
 import Data.Text (Text, unpack)
-import Tiger.Util.SourcePos (SourceSpan)
 
 class ASTNode a
 
