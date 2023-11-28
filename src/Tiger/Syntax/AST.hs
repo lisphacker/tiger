@@ -11,148 +11,120 @@ printToken _ a = a
 
 -- printToken s a = s ++ "<" ++ show a ++ ">"
 
-data Identifier = Identifier Text !SourceRegion
+data Identifier a = Identifier Text a
 
-instance Eq Identifier where
-  (Identifier n1 _) == (Identifier n2 _) = n1 == n2
+instance Eq (Identifier a) where
+  (Identifier s1 _) == (Identifier s2 _) = s1 == s2
 
-instance Show Identifier where
+instance Show (Identifier a) where
   show (Identifier s _) = printToken "ID" $ unpack s
-
-instance HasSourceRegion Identifier where
-  sourceRegion (Identifier _ r) = r
 
 type TypeIdentifier = Identifier
 
-data TypedField = TypedField Identifier TypeIdentifier !SourceRegion
-  deriving (Show)
+data TypedField a = TypedField (Identifier a) (TypeIdentifier a) a
 
-instance Eq TypedField where
+instance Eq (TypedField a) where
   (TypedField i1 ti1 _) == (TypedField i2 ti2 _) = i1 == i2 && ti1 == ti2
 
-instance HasSourceRegion TypedField where
-  sourceRegion (TypedField _ _ r) = r
+instance Show (TypedField a) where
+  show (TypedField i t _) = show i ++ " : " ++ show t
 
-data Type
-  = TypeAlias TypeIdentifier !SourceRegion
-  | RecordType [TypedField] !SourceRegion
-  | ArrayType TypeIdentifier !SourceRegion
+data Type a
+  = TypeAlias (TypeIdentifier a) a
+  | RecordType [TypedField a] a
+  | ArrayType (TypeIdentifier a) a
 
-instance Eq Type where
+instance Eq (Type a) where
   (TypeAlias ti1 _) == (TypeAlias ti2 _) = ti1 == ti2
   (RecordType fs1 _) == (RecordType fs2 _) = fs1 == fs2
   (ArrayType ti1 _) == (ArrayType ti2 _) = ti1 == ti2
   _ == _ = False
 
-instance Show Type where
+instance Show (Type a) where
   show (TypeAlias ti _) = show ti
   show (RecordType fs _) = "{" ++ fieldsStr ++ "}"
    where
     fieldsStr = intercalate "," $ map (\(TypedField i t _) -> show i ++ " : " ++ show t) fs
   show (ArrayType ti _) = "array of " ++ show ti
 
-instance HasSourceRegion Type where
-  sourceRegion (TypeAlias _ r) = r
-  sourceRegion (RecordType _ r) = r
-  sourceRegion (ArrayType _ r) = r
+data LValue a
+  = IdLValue (Identifier a) a
+  | RecordLValue (LValue a) (Identifier a) a
+  | ArrayLValue (LValue a) (Expression a) a
 
-data LValue
-  = IdLValue Identifier !SourceRegion
-  | RecordLValue LValue Identifier !SourceRegion
-  | ArrayLValue LValue Expression !SourceRegion
-
-instance Eq LValue where
+instance Eq (LValue a) where
   (IdLValue i1 _) == (IdLValue i2 _) = i1 == i2
   (RecordLValue l1 i1 _) == (RecordLValue l2 i2 _) = l1 == l2 && i1 == i2
   (ArrayLValue l1 e1 _) == (ArrayLValue l2 e2 _) = l1 == l2 && e1 == e2
   _ == _ = False
 
-instance Show LValue where
+instance Show (LValue a) where
   show (IdLValue i _) = show i
   show (RecordLValue l i _) = show l ++ "." ++ show i
   show (ArrayLValue l e _) = show l ++ "[" ++ show e ++ "]"
 
-instance HasSourceRegion LValue where
-  sourceRegion (IdLValue _ r) = r
-  sourceRegion (RecordLValue _ _ r) = r
-  sourceRegion (ArrayLValue _ _ r) = r
-
 data BinaryOperator
-  = AddOp !SourceRegion
-  | SubOp !SourceRegion
-  | MulOp !SourceRegion
-  | DivOp !SourceRegion
-  | EqOp !SourceRegion
-  | NeqOp !SourceRegion
-  | LtOp !SourceRegion
-  | LeOp !SourceRegion
-  | GtOp !SourceRegion
-  | GeOp !SourceRegion
-  | AndOp !SourceRegion
-  | OrOp !SourceRegion
+  = AddOp
+  | SubOp
+  | MulOp
+  | DivOp
+  | EqOp
+  | NeqOp
+  | LtOp
+  | LeOp
+  | GtOp
+  | GeOp
+  | AndOp
+  | OrOp
 
 instance Eq BinaryOperator where
-  (AddOp _) == (AddOp _) = True
-  (SubOp _) == (SubOp _) = True
-  (MulOp _) == (MulOp _) = True
-  (DivOp _) == (DivOp _) = True
-  (EqOp _) == (EqOp _) = True
-  (NeqOp _) == (NeqOp _) = True
-  (LtOp _) == (LtOp _) = True
-  (LeOp _) == (LeOp _) = True
-  (GtOp _) == (GtOp _) = True
-  (GeOp _) == (GeOp _) = True
-  (AndOp _) == (AndOp _) = True
-  (OrOp _) == (OrOp _) = True
+  AddOp == AddOp = True
+  SubOp == SubOp = True
+  MulOp == MulOp = True
+  DivOp == DivOp = True
+  EqOp == EqOp = True
+  NeqOp == NeqOp = True
+  LtOp == LtOp = True
+  LeOp == LeOp = True
+  GtOp == GtOp = True
+  GeOp == GeOp = True
+  AndOp == AndOp = True
+  OrOp == OrOp = True
   _ == _ = False
 
 instance Show BinaryOperator where
-  show (AddOp _) = "+"
-  show (SubOp _) = "-"
-  show (MulOp _) = "*"
-  show (DivOp _) = "/"
-  show (EqOp _) = "="
-  show (NeqOp _) = "<>"
-  show (LtOp _) = "<"
-  show (LeOp _) = "<="
-  show (GtOp _) = ">"
-  show (GeOp _) = ">="
-  show (AndOp _) = "&"
-  show (OrOp _) = "|"
+  show AddOp = "+"
+  show SubOp = "-"
+  show MulOp = "*"
+  show DivOp = "/"
+  show EqOp = "="
+  show NeqOp = "<>"
+  show LtOp = "<"
+  show LeOp = "<="
+  show GtOp = ">"
+  show GeOp = ">="
+  show AndOp = "&"
+  show OrOp = "|"
 
-instance HasSourceRegion BinaryOperator where
-  sourceRegion (AddOp r) = r
-  sourceRegion (SubOp r) = r
-  sourceRegion (MulOp r) = r
-  sourceRegion (DivOp r) = r
-  sourceRegion (EqOp r) = r
-  sourceRegion (NeqOp r) = r
-  sourceRegion (LtOp r) = r
-  sourceRegion (LeOp r) = r
-  sourceRegion (GtOp r) = r
-  sourceRegion (GeOp r) = r
-  sourceRegion (AndOp r) = r
-  sourceRegion (OrOp r) = r
+data Expression a
+  = NilExpression a
+  | IntExpression Int a
+  | StringExpression Text a
+  | ArrayCreationExpression (TypeIdentifier a) (Expression a) (Expression a) a
+  | RecordCreationExpression (TypeIdentifier a) [(Identifier a, Expression a)] a
+  | LValueExpression (LValue a) a
+  | CallExpression (Identifier a) [Expression a] a
+  | NegateExpression (Expression a) a
+  | OpExpression BinaryOperator (Expression a) (Expression a) a
+  | SeqExpression [Expression a] a
+  | AssignmentExpression (LValue a) (Expression a) a
+  | IfExpression (Expression a) (Expression a) (Maybe (Expression a)) a
+  | WhileExpression (Expression a) (Expression a) a
+  | ForExpression (Identifier a) (Expression a) (Expression a) (Expression a) a
+  | BreakExpression a
+  | LetExpression [Chunk a] [Expression a] a
 
-data Expression
-  = NilExpression !SourceRegion
-  | IntExpression Int !SourceRegion
-  | StringExpression Text !SourceRegion
-  | ArrayCreationExpression TypeIdentifier Expression Expression !SourceRegion
-  | RecordCreationExpression TypeIdentifier [(Identifier, Expression)] !SourceRegion
-  | LValueExpression LValue !SourceRegion
-  | CallExpression Identifier [Expression] !SourceRegion
-  | NegateExpression Expression !SourceRegion
-  | OpExpression BinaryOperator Expression Expression !SourceRegion
-  | SeqExpression [Expression] !SourceRegion
-  | AssignmentExpression LValue Expression !SourceRegion
-  | IfExpression Expression Expression (Maybe Expression) !SourceRegion
-  | WhileExpression Expression Expression !SourceRegion
-  | ForExpression Identifier Expression Expression Expression !SourceRegion
-  | BreakExpression !SourceRegion
-  | LetExpression [Chunk] [Expression] !SourceRegion
-
-instance Eq Expression where
+instance Eq (Expression a) where
   (NilExpression _) == (NilExpression _) = True
   (IntExpression i1 _) == (IntExpression i2 _) = i1 == i2
   (StringExpression s1 _) == (StringExpression s2 _) = s1 == s2
@@ -171,7 +143,7 @@ instance Eq Expression where
   (LetExpression cs1 es1 _) == (LetExpression cs2 es2 _) = cs1 == cs2 && es1 == es2
   _ == _ = False
 
-instance Show Expression where
+instance Show (Expression a) where
   show (NilExpression _) = "nil"
   show (IntExpression i _) = printToken "INT" $ show i
   show (StringExpression s _) = show s
@@ -192,62 +164,21 @@ instance Show Expression where
   show (BreakExpression _) = "break"
   show (LetExpression cs es _) = "let " ++ show cs ++ " in " ++ show es ++ " end"
 
-instance HasSourceRegion Expression where
-  sourceRegion (NilExpression r) = r
-  sourceRegion (IntExpression _ r) = r
-  sourceRegion (StringExpression _ r) = r
-  sourceRegion (ArrayCreationExpression _ _ _ r) = r
-  sourceRegion (RecordCreationExpression _ _ r) = r
-  sourceRegion (LValueExpression _ r) = r
-  sourceRegion (CallExpression _ _ r) = r
-  sourceRegion (NegateExpression _ r) = r
-  sourceRegion (OpExpression _ _ _ r) = r
-  sourceRegion (SeqExpression _ r) = r
-  sourceRegion (AssignmentExpression _ _ r) = r
-  sourceRegion (IfExpression _ _ _ r) = r
-  sourceRegion (WhileExpression _ _ r) = r
-  sourceRegion (ForExpression _ _ _ _ r) = r
-  sourceRegion (BreakExpression r) = r
-  sourceRegion (LetExpression _ _ r) = r
+data Chunk a
+  = TypeDecl (TypeIdentifier a) (Type a) a
+  | FuncDecl (Identifier a) [TypedField a] (Maybe (TypeIdentifier a)) (Expression a) a
+  | PrimitiveDecl (Identifier a) [TypedField a] (Maybe (TypeIdentifier a)) a
+  | VarDecl (Identifier a) (Maybe (TypeIdentifier a)) (Expression a) a
 
-data Chunk
-  = TypeDecl TypeIdentifier Type !SourceRegion
-  | FuncDecl Identifier [TypedField] (Maybe TypeIdentifier) Expression !SourceRegion
-  | PrimitiveDecl Identifier [TypedField] (Maybe TypeIdentifier) !SourceRegion
-  | VarDecl Identifier (Maybe TypeIdentifier) Expression !SourceRegion
-
-instance Show Chunk where
+instance Show (Chunk a) where
   show (TypeDecl ti t _) = printToken "TYPEDECL" $ "type " ++ show ti ++ " = " ++ show t
   show (FuncDecl i fs r e _) = printToken "FUNCDECL" $ "function " ++ show i ++ "(" ++ show fs ++ ")" ++ maybe "" (\r' -> " : " ++ show r') r ++ " = " ++ show e
   show (PrimitiveDecl i fs r _) = printToken "PRIMDECL" $ "primitive " ++ show i ++ "(" ++ show fs ++ ")" ++ maybe "" (\r' -> " : " ++ show r') r
   show (VarDecl i t e _) = printToken "VARDECL" $ "var " ++ show i ++ maybe "" (\t' -> " : " ++ show t') t ++ " := " ++ show e
 
-instance Eq Chunk where
+instance Eq (Chunk a) where
   (TypeDecl ti1 t1 _) == (TypeDecl ti2 t2 _) = ti1 == ti2 && t1 == t2
   (FuncDecl i1 fs1 r1 e1 _) == (FuncDecl i2 fs2 r2 e2 _) = i1 == i2 && fs1 == fs2 && r1 == r2 && e1 == e2
   (PrimitiveDecl i1 fs1 r1 _) == (PrimitiveDecl i2 fs2 r2 _) = i1 == i2 && fs1 == fs2 && r1 == r2
   (VarDecl i1 t1 e1 _) == (VarDecl i2 t2 e2 _) = i1 == i2 && t1 == t2 && e1 == e2
   _ == _ = False
-
-instance HasSourceRegion Chunk where
-  sourceRegion (TypeDecl _ _ r) = r
-  sourceRegion (FuncDecl _ _ _ _ r) = r
-  sourceRegion (PrimitiveDecl _ _ _ r) = r
-  sourceRegion (VarDecl _ _ _ r) = r
-
-data Program
-  = ExpressionProgram Expression !SourceRegion
-  | Chunks [Chunk] !SourceRegion
-
-instance Eq Program where
-  (ExpressionProgram e1 _) == (ExpressionProgram e2 _) = e1 == e2
-  (Chunks cs1 _) == (Chunks cs2 _) = cs1 == cs2
-  _ == _ = False
-
-instance Show Program where
-  show (ExpressionProgram e _) = show e
-  show (Chunks cs _) = show cs
-
-instance HasSourceRegion Program where
-  sourceRegion (ExpressionProgram _ r) = r
-  sourceRegion (Chunks _ r) = r
