@@ -11,9 +11,9 @@ import Tiger.Syntax.Lexer
 import Tiger.Syntax.Tokens
 import Tiger.Util.SourcePos
 
-testNonParametricToken :: String -> String -> (SourceRegion -> Token) -> Spec
+testNonParametricToken :: String -> String -> (SourceSpan -> Token) -> Spec
 testNonParametricToken tokenType tokenStr tokenCons = it ("Testing " ++ tokenType ++ " " ++ tokenStr) $ do
-  tokenScan tokenStr `shouldBe` Right [tokenCons (SourceRegion "" (Span (SourceLocation 0 1 1) (SourceLocation (length tokenStr) 1 (length tokenStr + 1))))]
+  tokenScan tokenStr `shouldBe` Right [tokenCons (SourceSpan (SourceLocation 0 1 1) (SourceLocation (length tokenStr) 1 (length tokenStr + 1)))]
 
 testKeywords :: Spec
 testKeywords = describe "Testing keyword lexers" $ forM_ keywords (\(kw, tok) -> testNonParametricToken "keyword" kw tok)
@@ -86,7 +86,7 @@ testStringLiteral = describe "Testing string lexer" $ do
   testMultiLineStringLiteral = it "Testing multi-line string literal" $ do
     scanAndTestStr "\"123\n45\""
   scanAndTestStr s = tokenScan s `shouldBe` Right [mkStrLit s]
-  mkStrLit str = StringLiteral (T.drop 1 $ T.dropEnd 1 $ T.pack str) (SourceRegion "" (Span start end))
+  mkStrLit str = StringLiteral (T.drop 1 $ T.dropEnd 1 $ T.pack str) (SourceSpan start end)
    where
     start = SourceLocation 0 1 1
     end = computeEnd start str
@@ -104,7 +104,7 @@ testIntLiteral = describe "Testing int lexer" $ do
  where
   scanAndTestInt i = it ("Testing int " ++ show i) $ do
     tokenScan (show i) `shouldBe` Right [mkIntLit i]
-  mkIntLit i = IntLiteral i (SourceRegion "" (Span start end))
+  mkIntLit i = IntLiteral i (SourceSpan start end)
    where
     start = SourceLocation 0 1 1
     end = SourceLocation l 1 (l + 1)
@@ -124,7 +124,7 @@ testIdentifier = describe "Testing id lexer" $ do
     tokenScan id `shouldBe` Right [mkId id]
   scanAndTestIdFailure id = it ("Testing id " ++ id) $ do
     tokenScan id `shouldNotBe` Right [mkId id]
-  mkId id = Identifier (T.pack id) (SourceRegion "" (Span start end))
+  mkId id = Identifier (T.pack id) (SourceSpan start end)
    where
     start = SourceLocation 0 1 1
     end = SourceLocation l 1 (l + 1)

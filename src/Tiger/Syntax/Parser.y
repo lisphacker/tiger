@@ -6,10 +6,9 @@ import Data.Text (Text(..), pack)
 import Tiger.Syntax.Lexer qualified as L
 import Tiger.Syntax.Tokens qualified as Tok
 import Tiger.Syntax.AST
-import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, mergeSourceRegions, mergeHasSourceRegions, mergeHasSourceRegionsList, (<+>))
+import Tiger.Util.SourcePos (SourceSpan, Spanned(..), getSpan, mergeSpans, mergeSourceSpanWithList, (<+>))
 }
 
-%name parseTigerProgram Program
 %name parseTigerExpression Exp
 
 %tokentype { Tok.Token }
@@ -86,7 +85,7 @@ TypedField : identifier ':' identifier { TypedField (mkIdent $1) (mkIdent $3) ($
 TypedFields : TypedField ',' TypedFields { $1:$3 }
             | TypedField { [$1] }
 
-Type : identifier { TypeAlias (mkIdent $1) (sourceRegion $1) }
+Type : identifier { TypeAlias (mkIdent $1) (getSpan $1) }
      | '{' TypedFields '}' { RecordType $2 ($1 <+> $3) }
      | array of identifier { ArrayType (mkIdent $3) ($1 <+> $3) }
 
@@ -96,7 +95,7 @@ ExpList : Exp ',' ExpList { $1:$3 }
 FieldValues : identifier '=' Exp ',' FieldValues { (mkIdent $1,$3):$5 }
             | identifier '=' Exp { [(mkIdent $1,$3)] }
 
-LValue : identifier { IdLValue (mkIdent $1) (sourceRegion $1) }
+LValue : identifier { IdLValue (mkIdent $1) (getSpan $1) }
        | LValue2 { $1 }
 
 LValue2 : identifier '.' identifier { RecordLValue (mkIdLVal $1) (mkIdent $3) ($1 <+> $3) } 
@@ -104,34 +103,34 @@ LValue2 : identifier '.' identifier { RecordLValue (mkIdLVal $1) (mkIdent $3) ($
         | identifier '[' Exp ']' { ArrayLValue (mkIdLVal $1) $3  ($1 <+> $4) }
         | LValue2 '[' Exp ']' { ArrayLValue $1 $3  ($1 <+> $4) }
 
-Exp : nil { NilExpression (sourceRegion $1) }
-    | integer { IntExpression (getIntFromToken $1) (sourceRegion $1) }
-    | string { StringExpression (getStrFromToken $1) (sourceRegion $1) }
-    | Exp '+' Exp { OpExpression (AddOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '-' Exp { OpExpression (SubOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '*' Exp { OpExpression (MulOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '/' Exp { OpExpression (DivOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '=' Exp { OpExpression (EqOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp "<>" Exp { OpExpression (NeqOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '<' Exp { OpExpression (LtOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp "<=" Exp { OpExpression (LeOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '>' Exp { OpExpression (GtOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp ">=" Exp { OpExpression (GeOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '&' Exp { OpExpression (AndOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
-    | Exp '|' Exp { OpExpression (OrOp $ sourceRegion $2) $1 $3 ($1 <+> $3) }
+Exp : nil { NilExpression (getSpan $1) }
+    | integer { IntExpression (getIntFromToken $1) (getSpan $1) }
+    | string { StringExpression (getStrFromToken $1) (getSpan $1) }
+    | Exp '+' Exp { OpExpression AddOp $1 $3 ($1 <+> $3) }
+    | Exp '-' Exp { OpExpression SubOp $1 $3 ($1 <+> $3) }
+    | Exp '*' Exp { OpExpression MulOp $1 $3 ($1 <+> $3) }
+    | Exp '/' Exp { OpExpression DivOp $1 $3 ($1 <+> $3) }
+    | Exp '=' Exp { OpExpression EqOp $1 $3 ($1 <+> $3) }
+    | Exp "<>" Exp { OpExpression NeqOp $1 $3 ($1 <+> $3) }
+    | Exp '<' Exp { OpExpression LtOp $1 $3 ($1 <+> $3) }
+    | Exp "<=" Exp { OpExpression LeOp $1 $3 ($1 <+> $3) }
+    | Exp '>' Exp { OpExpression GtOp $1 $3 ($1 <+> $3) }
+    | Exp ">=" Exp { OpExpression GeOp $1 $3 ($1 <+> $3) }
+    | Exp '&' Exp { OpExpression AndOp $1 $3 ($1 <+> $3) }
+    | Exp '|' Exp { OpExpression OrOp $1 $3 ($1 <+> $3) }
     | '(' Exp ')' { $2 }
     | '-' Exp { NegateExpression $2 ($1 <+> $2) }
     | '(' Exps ')' { SeqExpression $2 ($1 <+> $3) }
     | identifier '[' Exp ']' of Exp { ArrayCreationExpression (mkIdent $1) $3 $6 ($1 <+> $6) }
     | identifier '{' FieldValues '}' { RecordCreationExpression (mkIdent $1) $3 ($1 <+> $4) }
-    | LValue { LValueExpression $1 (sourceRegion $1) }
+    | LValue { LValueExpression $1 (getSpan $1) }
     | identifier '(' ExpList ')' { CallExpression (mkIdent $1) $3 ($1 <+> $4) }
     | LValue ":=" Exp { AssignmentExpression $1 $3 ($1 <+> $3) }
     | if Exp then Exp else Exp { IfExpression $2 $4 (Just $6) ($1 <+> $6) }
     | if Exp then Exp { IfExpression $2 $4 Nothing ($1 <+> $4) }
     | while Exp do Exp { WhileExpression $2 $4 ($1 <+> $4) }
     | for identifier ":=" Exp to Exp do Exp { ForExpression (mkIdent $2) $4 $6 $8 ($1 <+> $8) }
-    | break { BreakExpression (sourceRegion $1) }
+    | break { BreakExpression (getSpan $1) }
     | let Chunks in Exps end { LetExpression $2 $4 ($1 <+> $5) }
 
 Exps : Exp ';' Exps { $1:$3 }
@@ -156,10 +155,6 @@ Chunk : TypeDecl { $1 }
 Chunks : Chunk Chunks { $1:$2 }
        | Chunk { [$1] }
 
-Program : Exp { ExpressionProgram $1 (sourceRegion $1) }
-        | Chunks { Chunks $1 (mergeHasSourceRegionsList $1) }
-      
-
 
 {
 thenEither :: Either String a -> (a -> Either String b) -> Either String b
@@ -171,14 +166,14 @@ returnEither = Right
 
 parseError :: [Tok.Token] -> Either String a
 parseError [] = Left $ "Parse error at end of file"
-parseError (t:ts) = Left $ "Parse error reading '" ++ show t ++ "' at " <> (show $ sourceRegion t)
+parseError (t:ts) = Left $ "Parse error reading '" ++ show t ++ "' at " <> (show $ getSpan t)
 
 
-mkIdent :: Tok.Token -> Identifier
+mkIdent :: Tok.Token -> (Identifier SourceSpan)
 mkIdent (Tok.Identifier t r) = Identifier t r
 mkIdent _ = error "mkIdent: not an identifier"
 
-mkIdLVal :: Tok.Token -> LValue
+mkIdLVal :: Tok.Token -> (LValue SourceSpan)
 mkIdLVal (Tok.Identifier t r) = IdLValue (Identifier t r) r
 mkIdLVal _ = error "mkIdent: not an identifier"
 
@@ -190,9 +185,34 @@ getStrFromToken :: Tok.Token -> Text
 getStrFromToken (Tok.StringLiteral s _) = s
 getStrFromToken _ = error "getStrFromToken: not a string"
 
-parseExpression :: String -> Either String Expression
+parseExpression :: String -> Either String (Expression SourceSpan)
 parseExpression s = L.tokenScan s >>= parseTigerExpression
 
-parseProgram :: String -> Either String Program
-parseProgram s = L.tokenScan s >>= parseTigerProgram
+instance Spanned (LValue SourceSpan) where
+  getSpan (IdLValue _ s) = s
+  getSpan (RecordLValue _ _ s) = s
+  getSpan (ArrayLValue _ _ s) = s
+
+instance Spanned (Expression SourceSpan) where
+  getSpan (NilExpression s) = s
+  getSpan (IntExpression _ s) = s
+  getSpan (StringExpression _ s) = s
+  getSpan (OpExpression _ _ _ s) = s
+  getSpan (NegateExpression _ s) = s
+  getSpan (SeqExpression _ s) = s
+  getSpan (ArrayCreationExpression _ _ _ s) = s
+  getSpan (RecordCreationExpression _ _ s) = s
+  getSpan (LValueExpression _ s) = s
+  getSpan (CallExpression _ _ s) = s
+  getSpan (AssignmentExpression _ _ s) = s
+  getSpan (IfExpression _ _ _ s) = s
+  getSpan (WhileExpression _ _ s) = s
+  getSpan (ForExpression _ _ _ _ s) = s
+  getSpan (BreakExpression s) = s
+  getSpan (LetExpression _ _ s) = s
+
+instance Spanned (Type SourceSpan) where
+  getSpan (TypeAlias _ s) = s
+  getSpan (RecordType _ s) = s
+  getSpan (ArrayType _ s) = s
 }

@@ -9,7 +9,7 @@ import Test.Hspec
 
 import Tiger.Syntax.Lexer (tokenScan)
 import Tiger.Syntax.Tokens
-import Tiger.Util.SourcePos (SourceRegion, uninitializedSourceRegion)
+import Tiger.Util.SourcePos (SourceLocation (..), SourceSpan (..))
 
 testEmptyProgram :: Spec
 testEmptyProgram = it "Testing empty program" $ do
@@ -54,8 +54,8 @@ end
 |] ::
     String
 
-__ :: SourceRegion
-__ = uninitializedSourceRegion
+__ :: SourceSpan
+__ = SourceSpan (SourceLocation 0 0 0) (SourceLocation 0 0 0)
 
 testProgram :: Spec
 testProgram = it "Testing program" $ do

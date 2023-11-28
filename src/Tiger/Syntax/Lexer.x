@@ -127,20 +127,16 @@ decCommentLevel input len = do
   when (newLevel == 0) $ alexSetStartCode 0
   skip input len
 
-mkToken :: (SourceRegion -> Tok.Token) -> AlexAction Tok.Token
+mkToken :: (SourceSpan -> Tok.Token) -> AlexAction Tok.Token
 mkToken cons ((AlexPn off r c), _, _, _) len = do
-  let sp = makeSpanOfLength len (SourceLocation off r c)
-  let region = SourceRegion "" sp
-  return $ cons region
+  return $ cons $ makeSpanOfLength len (SourceLocation off r c)
 
-mkTokenWithParam :: (a -> SourceRegion -> Tok.Token) -> (String -> Maybe a) -> AlexAction Tok.Token
+mkTokenWithParam :: (a -> SourceSpan -> Tok.Token) -> (String -> Maybe a) -> AlexAction Tok.Token
 mkTokenWithParam cons parse ((AlexPn off r c), _, _, inputStr) len = do
   let tokenStr = take len inputStr
-  let sp = makeSpanFromString tokenStr (SourceLocation off r c)
-  let region = SourceRegion "" sp
   case parse tokenStr of
     Nothing -> alexError $ "Invalid token: <<<" ++ tokenStr ++ ">>>"
-    Just tokenVal -> return $ cons tokenVal region
+    Just tokenVal -> return $ cons tokenVal $ makeSpanFromString tokenStr (SourceLocation off r c)
 
 tokenScan :: String -> Either String [Tok.Token]
 tokenScan input = runAlex input go
