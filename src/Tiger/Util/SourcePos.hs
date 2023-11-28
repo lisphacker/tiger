@@ -16,6 +16,9 @@ data SourceSpan = SourceSpan
   }
   deriving (Eq, Ord, Show)
 
+class Spanned a where
+  getSpan :: a -> SourceSpan
+
 mergeSpans :: SourceSpan -> SourceSpan -> SourceSpan
 mergeSpans (SourceSpan s1 e1) (SourceSpan s2 e2) = SourceSpan (min s1 s2) (max e1 e2)
 
@@ -34,8 +37,8 @@ makeSpanFromString s start = makeSpanFromString' s start
     '\t' -> makeSpanFromString' xs $ SourceLocation (o + 1) r (c + 8)
     _ -> makeSpanFromString' xs $ SourceLocation (o + 1) r (c + 1)
 
-(<+>) :: SourceSpan -> SourceSpan -> SourceSpan
-(<+>) = mergeSpans
+(<+>) :: (Spanned a, Spanned b) => a -> b -> SourceSpan
+(<+>) a b = mergeSpans (getSpan a) (getSpan b)
 
-mergeSourceSpanWithList :: SourceSpan -> [SourceSpan] -> SourceSpan
-mergeSourceSpanWithList = foldl mergeSpans
+mergeSourceSpanWithList :: (Spanned a, Spanned b) => a -> [b] -> SourceSpan
+mergeSourceSpanWithList a bs = foldl mergeSpans (getSpan a) $ map getSpan bs

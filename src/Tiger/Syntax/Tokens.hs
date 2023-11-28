@@ -1,7 +1,7 @@
 module Tiger.Syntax.Tokens where
 
 import Data.Text (Text, unpack)
-import Tiger.Util.SourcePos (SourceSpan)
+import Tiger.Util.SourcePos (SourceSpan, Spanned (..))
 
 data Token
   = -- keywords
@@ -172,3 +172,53 @@ instance Show Token where
   show EOF = "EOF"
   show (CommentBegin _) = "/*"
   show (CommentEnd _) = "*/"
+
+instance Spanned Token where
+  getSpan (Array s) = s
+  getSpan (If s) = s
+  getSpan (Then s) = s
+  getSpan (Else s) = s
+  getSpan (While s) = s
+  getSpan (For s) = s
+  getSpan (To s) = s
+  getSpan (Do s) = s
+  getSpan (Let s) = s
+  getSpan (In s) = s
+  getSpan (End s) = s
+  getSpan (Of s) = s
+  getSpan (Break s) = s
+  getSpan (Nil s) = s
+  getSpan (Function s) = s
+  getSpan (Var s) = s
+  getSpan (Type s) = s
+  getSpan (Import s) = s
+  getSpan (Primitive s) = s
+  getSpan (Class s) = s
+  getSpan (Extends s) = s
+  getSpan (Method s) = s
+  getSpan (New s) = s
+  getSpan (Comma s) = s
+  getSpan (Colon s) = s
+  getSpan (Semicolon s) = s
+  getSpan (LParen s) = s
+  getSpan (RParen s) = s
+  getSpan (LBracket s) = s
+  getSpan (RBracket s) = s
+  getSpan (LBrace s) = s
+  getSpan (RBrace s) = s
+  getSpan (Dot s) = s
+  getSpan (Plus s) = s
+  getSpan (Minus s) = s
+  getSpan (Star s) = s
+  getSpan (Slash s) = s
+  getSpan (EqualTo s) = s
+  getSpan (NotEqualTo s) = s
+  getSpan (LessThan s) = s
+  getSpan (LessThanOrEqualTo s) = s
+  getSpan (GreaterThan s) = s
+  getSpan (GreaterThanOrEqualTo s) = s
+  getSpan (And s) = s
+  getSpan (Or s) = s
+  getSpan (Assign s) = s
+  getSpan (StringLiteral _ s) = s
+  getSpan (IntLiteral _ s) = s
