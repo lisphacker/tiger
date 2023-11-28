@@ -10,6 +10,3 @@ stack build
 ```
 stack test
 ```
-
-## Notes
-I'm using the spec given [here](https://assignments.lrde.epita.fr/reference_manual/tiger_language_reference_manual/tiger_language_reference_manual.html) by [LRDE, EPITA](https://www.lrde.epita.fr/wiki/Home)
