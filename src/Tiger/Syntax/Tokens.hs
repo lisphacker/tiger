@@ -1,67 +1,67 @@
 module Tiger.Syntax.Tokens where
 
 import Data.Text (Text, unpack)
-import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion, uninitializedSourceRegion)
+import Tiger.Util.SourcePos (SourceSpan)
 
 data Token
   = -- keywords
-    Array !SourceRegion
-  | If !SourceRegion
-  | Then !SourceRegion
-  | Else !SourceRegion
-  | While !SourceRegion
-  | For !SourceRegion
-  | To !SourceRegion
-  | Do !SourceRegion
-  | Let !SourceRegion
-  | In !SourceRegion
-  | End !SourceRegion
-  | Of !SourceRegion
-  | Break !SourceRegion
-  | Nil !SourceRegion
-  | Function !SourceRegion
-  | Var !SourceRegion
-  | Type !SourceRegion
-  | Import !SourceRegion
-  | Primitive !SourceRegion
-  | Class !SourceRegion
-  | Extends !SourceRegion
-  | Method !SourceRegion
-  | New !SourceRegion
+    Array !SourceSpan
+  | If !SourceSpan
+  | Then !SourceSpan
+  | Else !SourceSpan
+  | While !SourceSpan
+  | For !SourceSpan
+  | To !SourceSpan
+  | Do !SourceSpan
+  | Let !SourceSpan
+  | In !SourceSpan
+  | End !SourceSpan
+  | Of !SourceSpan
+  | Break !SourceSpan
+  | Nil !SourceSpan
+  | Function !SourceSpan
+  | Var !SourceSpan
+  | Type !SourceSpan
+  | Import !SourceSpan
+  | Primitive !SourceSpan
+  | Class !SourceSpan
+  | Extends !SourceSpan
+  | Method !SourceSpan
+  | New !SourceSpan
   | -- Symbols
-    Comma !SourceRegion
-  | Colon !SourceRegion
-  | Semicolon !SourceRegion
-  | LParen !SourceRegion
-  | RParen !SourceRegion
-  | LBracket !SourceRegion
-  | RBracket !SourceRegion
-  | LBrace !SourceRegion
-  | RBrace !SourceRegion
-  | Dot !SourceRegion
-  | Plus !SourceRegion
-  | Minus !SourceRegion
-  | Star !SourceRegion
-  | Slash !SourceRegion
-  | EqualTo !SourceRegion
-  | NotEqualTo !SourceRegion
-  | LessThan !SourceRegion
-  | LessThanOrEqualTo !SourceRegion
-  | GreaterThan !SourceRegion
-  | GreaterThanOrEqualTo !SourceRegion
-  | And !SourceRegion
-  | Or !SourceRegion
-  | Assign !SourceRegion
+    Comma !SourceSpan
+  | Colon !SourceSpan
+  | Semicolon !SourceSpan
+  | LParen !SourceSpan
+  | RParen !SourceSpan
+  | LBracket !SourceSpan
+  | RBracket !SourceSpan
+  | LBrace !SourceSpan
+  | RBrace !SourceSpan
+  | Dot !SourceSpan
+  | Plus !SourceSpan
+  | Minus !SourceSpan
+  | Star !SourceSpan
+  | Slash !SourceSpan
+  | EqualTo !SourceSpan
+  | NotEqualTo !SourceSpan
+  | LessThan !SourceSpan
+  | LessThanOrEqualTo !SourceSpan
+  | GreaterThan !SourceSpan
+  | GreaterThanOrEqualTo !SourceSpan
+  | And !SourceSpan
+  | Or !SourceSpan
+  | Assign !SourceSpan
   | -- Literals
-    StringLiteral !Text !SourceRegion
-  | IntLiteral !Int !SourceRegion
+    StringLiteral !Text !SourceSpan
+  | IntLiteral !Int !SourceSpan
   | -- Identifiers
-    Identifier !Text !SourceRegion
+    Identifier !Text !SourceSpan
   | -- EOF
     EOF
   | -- Comments
-    CommentBegin !SourceRegion
-  | CommentEnd !SourceRegion
+    CommentBegin !SourceSpan
+  | CommentEnd !SourceSpan
   deriving (Ord)
 
 instance Eq Token where
@@ -118,60 +118,6 @@ instance Eq Token where
   (CommentBegin _) == (CommentBegin _) = True
   (CommentEnd _) == (CommentEnd _) = True
   _ == _ = False
-
-instance HasSourceRegion Token where
-  sourceRegion (Array r) = r
-  sourceRegion (If r) = r
-  sourceRegion (Then r) = r
-  sourceRegion (Else r) = r
-  sourceRegion (While r) = r
-  sourceRegion (For r) = r
-  sourceRegion (To r) = r
-  sourceRegion (Do r) = r
-  sourceRegion (Let r) = r
-  sourceRegion (In r) = r
-  sourceRegion (End r) = r
-  sourceRegion (Of r) = r
-  sourceRegion (Break r) = r
-  sourceRegion (Nil r) = r
-  sourceRegion (Function r) = r
-  sourceRegion (Var r) = r
-  sourceRegion (Type r) = r
-  sourceRegion (Import r) = r
-  sourceRegion (Primitive r) = r
-  sourceRegion (Class r) = r
-  sourceRegion (Extends r) = r
-  sourceRegion (Method r) = r
-  sourceRegion (New r) = r
-  sourceRegion (Comma r) = r
-  sourceRegion (Colon r) = r
-  sourceRegion (Semicolon r) = r
-  sourceRegion (LParen r) = r
-  sourceRegion (RParen r) = r
-  sourceRegion (LBracket r) = r
-  sourceRegion (RBracket r) = r
-  sourceRegion (LBrace r) = r
-  sourceRegion (RBrace r) = r
-  sourceRegion (Dot r) = r
-  sourceRegion (Plus r) = r
-  sourceRegion (Minus r) = r
-  sourceRegion (Star r) = r
-  sourceRegion (Slash r) = r
-  sourceRegion (EqualTo r) = r
-  sourceRegion (NotEqualTo r) = r
-  sourceRegion (LessThan r) = r
-  sourceRegion (LessThanOrEqualTo r) = r
-  sourceRegion (GreaterThan r) = r
-  sourceRegion (GreaterThanOrEqualTo r) = r
-  sourceRegion (And r) = r
-  sourceRegion (Or r) = r
-  sourceRegion (Assign r) = r
-  sourceRegion (StringLiteral _ r) = r
-  sourceRegion (IntLiteral _ r) = r
-  sourceRegion (Identifier _ r) = r
-  sourceRegion EOF = uninitializedSourceRegion
-  sourceRegion (CommentBegin r) = r
-  sourceRegion (CommentEnd r) = r
 
 instance Show Token where
   show (Array _) = "array"

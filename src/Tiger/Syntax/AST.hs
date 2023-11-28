@@ -2,9 +2,9 @@ module Tiger.Syntax.AST where
 
 import Data.List (intercalate)
 import Data.Text (Text, unpack)
-import Tiger.Util.SourcePos (HasSourceRegion (..), SourceRegion)
+import Tiger.Util.SourcePos (SourceSpan)
 
-class (HasSourceRegion a) => ASTNode a
+class ASTNode a
 
 printToken :: String -> String -> String
 printToken _ a = a
