@@ -3,6 +3,7 @@
 module Tiger.Syntax.Parser where
 
 import Data.Text (Text(..), pack)
+import Tiger.Errors qualified as Err
 import Tiger.Syntax.Lexer qualified as L
 import Tiger.Syntax.Tokens qualified as Tok
 import Tiger.Syntax.AST
@@ -13,7 +14,7 @@ import Tiger.Util.SourcePos (SourceSpan, Spanned(..), getSpan, mergeSpans, merge
 
 %tokentype { Tok.Token }
 %error { parseError }
-%monad { Either String } { thenEither } { returnEither }
+%monad { Either Err.Error } { thenEither } { returnEither }
 
 %right in
 %nonassoc ':='
@@ -157,35 +158,35 @@ Chunks : Chunk Chunks { $1:$2 }
 
 
 {
-thenEither :: Either String a -> (a -> Either String b) -> Either String b
+thenEither :: Either Err.Error a -> (a -> Either Err.Error b) -> Either Err.Error b
 thenEither (Left err) _ = Left err
 thenEither (Right a) f = f a
 
-returnEither :: a -> Either String a
+returnEither :: a -> Either Err.Error a
 returnEither = Right
 
-parseError :: [Tok.Token] -> Either String a
-parseError [] = Left $ "Parse error at end of file"
-parseError (t:ts) = Left $ "Parse error reading '" ++ show t ++ "' at " <> (show $ getSpan t)
+parseError :: [Tok.Token] -> Either Err.Error a
+parseError [] = Left $ Err.SyntaxErrorAtEndOfInput "Parse error at end of file"
+parseError (t:ts) = Left $ Err.SyntaxError ("Parse error reading '" ++ show t ++ "' at " <> (show $ getSpan t)) (getSpan t)
 
 
 mkIdent :: Tok.Token -> (Identifier SourceSpan)
 mkIdent (Tok.Identifier t r) = Identifier t r
-mkIdent _ = error "mkIdent: not an identifier"
+mkIdent t = error "mkIdent: not an identifier"
 
 mkIdLVal :: Tok.Token -> (LValue SourceSpan)
 mkIdLVal (Tok.Identifier t r) = IdLValue (Identifier t r) r
-mkIdLVal _ = error "mkIdent: not an identifier"
+mkIdLVal t = error "mkIdent: not an identifier"
 
 getIntFromToken :: Tok.Token -> Int
 getIntFromToken (Tok.IntLiteral i _) = i
-getIntFromToken _ = error "getIntFromToken: not an integer"
+getIntFromToken t = error "getIntFromToken: not an integer"
 
 getStrFromToken :: Tok.Token -> Text
 getStrFromToken (Tok.StringLiteral s _) = s
-getStrFromToken _ = error "getStrFromToken: not a string"
+getStrFromToken t = error "getStrFromToken: not a string"
 
-parseExpression :: String -> Either String (Expression SourceSpan)
+parseExpression :: String -> Either Err.Error (Expression SourceSpan)
 parseExpression s = L.tokenScan s >>= parseTigerExpression
 
 instance Spanned (LValue SourceSpan) where

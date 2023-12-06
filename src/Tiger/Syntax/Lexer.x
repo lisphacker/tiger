@@ -5,6 +5,7 @@ import Control.Monad (when)
 import Data.Text qualified as T
 import Text.Read (readMaybe)
 
+import Tiger.Errors (Error(..))
 import Tiger.Syntax.Tokens qualified as Tok
 import Tiger.Util.SourcePos
 }
@@ -109,6 +110,11 @@ alexEOF = do
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUserState 0
 
+alexGetSourceLocation :: Alex SourceLocation
+alexGetSourceLocation = do
+  (AlexPn off r c, _, _, _) <- alexGetInput
+  return $ SourceLocation off r c
+
 getCommentLevel :: Alex Int
 getCommentLevel = commentLevel <$> alexGetUserState
 
@@ -135,16 +141,20 @@ mkTokenWithParam :: (a -> SourceSpan -> Tok.Token) -> (String -> Maybe a) -> Ale
 mkTokenWithParam cons parse ((AlexPn off r c), _, _, inputStr) len = do
   let tokenStr = take len inputStr
   case parse tokenStr of
-    Nothing -> alexError $ "Invalid token: <<<" ++ tokenStr ++ ">>>"
+    Nothing -> alexError $ "Invalid token: <<<" ++ tokenStr ++ ">>> at " ++ show (SourceLocation off r c)
     Just tokenVal -> return $ cons tokenVal $ makeSpanFromString tokenStr (SourceLocation off r c)
 
-tokenScan :: String -> Either String [Tok.Token]
-tokenScan input = runAlex input go
-  where
-    go = do
-      output <- alexMonadScan
-      case output of
-        Tok.EOF -> pure []
-        _ -> (output :) <$> go
+tokenScan :: String -> Either Error [Tok.Token]
+tokenScan input = case runAlex input go of
+  Left err -> Left $ LexicalError err
+  Right tokens -> Right tokens
+ where
+  go :: Alex [Tok.Token]
+  go = do
+    output <- alexMonadScan
+    case output of
+      Tok.EOF -> pure []
+      _ -> (output :) <$> go
 
+ 
 }
