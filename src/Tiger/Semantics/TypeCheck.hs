@@ -4,10 +4,17 @@ import Control.Monad.State (MonadState (..), State, evalState)
 import Data.Maybe (isJust)
 import Data.Text (unpack)
 import Tiger.Errors (Error (TypeError))
+import Tiger.Semantics.Environment (newEnv)
 import Tiger.Semantics.Environment qualified as E
 import Tiger.Semantics.Types qualified as T
 import Tiger.Syntax.AST qualified as AST
 import Tiger.Util.SourcePos (SourceSpan)
+
+isRight (Right _) = True
+isRight _ = False
+
+fromRight (Right t) = t
+fromRight _ = undefined
 
 newtype TypeCheckState = TypeCheckState Int
 
@@ -37,6 +44,9 @@ typeCheckExpr env expr = evalState (typeCheckExprST env expr) (TypeCheckState 10
 
 typeCheckTypeST :: E.Environment -> AST.TypeIdentifier SourceSpan -> State TypeCheckState (Either Error T.Type)
 typeCheckTypeST = undefined
+
+typeCheckDeclsST :: E.Environment -> [AST.Chunk SourceSpan] -> State TypeCheckState E.Environment
+typeCheckDeclsST = undefined
 
 typeCheckExprST :: E.Environment -> AST.Expression SourceSpan -> State TypeCheckState (Either Error T.Type)
 typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
@@ -118,11 +128,6 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
         if all isRight ets
           then Right $ last $ map fromRight ets
           else Left $ TypeError "Expected same type" p
-     where
-      isRight (Right _) = True
-      isRight _ = False
-      fromRight (Right t) = t
-      fromRight _ = undefined
     (AST.AssignmentExpression lval expr p) -> do
       eiT1 <- typeCheckExprST e (AST.LValueExpression lval p)
       eiT2 <- typeCheckExprST e expr
@@ -133,7 +138,7 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
             else pure $ Left $ TypeError "Expected same type" p
         (Left err, _) -> pure $ Left err
         (_, Left err) -> pure $ Left err
-    (AST.IfExpression cond expr1 expr2 p) -> do
+    (AST.IfExpression cond expr1 (Just expr2) p) -> do
       eiT1 <- typeCheckExprST e cond
       eiT2 <- typeCheckExprST e expr1
       eiT3 <- typeCheckExprST e expr2
@@ -145,6 +150,16 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
         (Left err, _, _) -> pure $ Left err
         (_, Left err, _) -> pure $ Left err
         (_, _, Left err) -> pure $ Left err
+    (AST.IfExpression cond expr Nothing p) -> do
+      eiT1 <- typeCheckExprST e cond
+      eiT2 <- typeCheckExprST e expr
+      case (eiT1, eiT2) of
+        (Right t1, Right t2) ->
+          if t1 == T.Bool
+            then pure $ Right T.Unit
+            else pure $ Left $ TypeError "Expected boolean condition and same type for then and else" p
+        (Left err, _) -> pure $ Left err
+        (_, Left err) -> pure $ Left err
     (AST.WhileExpression cond expr p) -> do
       eiT1 <- typeCheckExprST e cond
       eiT2 <- typeCheckExprST e expr
@@ -155,3 +170,24 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
             else pure $ Left $ TypeError "Expected boolean condition and unit body" p
         (Left err, _) -> pure $ Left err
         (_, Left err) -> pure $ Left err
+    (AST.ForExpression id@(AST.Identifier idn _) expr1 expr2 expr3 p) -> do
+      eiT1 <- typeCheckExprST e expr1
+      eiT2 <- typeCheckExprST e expr2
+      eiT3 <- typeCheckExprST e expr3
+      case (eiT1, eiT2, eiT3) of
+        (Right t1, Right t2, Right t3) ->
+          if t1 == T.Int && t2 == T.Int && t3 == T.Unit
+            then pure $ Right T.Unit
+            else pure $ Left $ TypeError "Expected integer type for bounds and unit body" p
+        (Left err, _, _) -> pure $ Left err
+        (_, Left err, _) -> pure $ Left err
+        (_, _, Left err) -> pure $ Left err
+    (AST.BreakExpression p) -> pure $ Right T.Unit
+    (AST.LetExpression decls exprs p) -> do
+      let e' = newEnv e
+      e'' <- typeCheckDeclsST e' decls
+      ets <- mapM (typeCheckExprST e'') exprs
+      pure $
+        if all isRight ets
+          then Right $ last $ map fromRight ets
+          else Left $ TypeError "Expected same type" p
