@@ -15,6 +15,7 @@ import Syntax.Lexer.ProgramTests (programLexerTestsSpec)
 import Syntax.Lexer.SingleTokenTests (singleTokenLexerTestsSpec)
 import Syntax.Parser.UnitTests (parserUnitTestsSpec)
 import Syntax.Parser.ProgramTests (parserProgramTestsSpec)
+import Semantics.TypeCheckerTests (typeCheckerTestsSpec)
 
 main :: IO ()
 main = do
@@ -29,3 +30,5 @@ spec = do
   describe "Parser tests" $ do
     parserUnitTestsSpec
     parserProgramTestsSpec
+  describe "Type checker tests" $ do
+    typeCheckerTestsSpec

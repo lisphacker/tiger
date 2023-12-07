@@ -5,7 +5,10 @@ data SourceLocation = SourceLocation
   , srcLocRow :: !Int
   , srcLocColumn :: !Int
   }
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show SourceLocation where
+  show (SourceLocation _ r c) = show r ++ ":" ++ show c
 
 instance Ord SourceLocation where
   compare (SourceLocation o1 _ _) (SourceLocation o2 _ _) = compare o1 o2
@@ -14,7 +17,10 @@ data SourceSpan = SourceSpan
   { spanStart :: SourceLocation
   , spanEnd :: SourceLocation
   }
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
+
+instance Show SourceSpan where
+  show (SourceSpan start end) = "<" ++ show start ++ "-" ++ show end ++ ">"
 
 class Spanned a where
   getSpan :: a -> SourceSpan

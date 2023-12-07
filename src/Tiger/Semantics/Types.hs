@@ -2,19 +2,21 @@
 
 module Tiger.Semantics.Types where
 
+import Tiger.Util.SourcePos (SourceSpan)
 import Tiger.Util.SymbolTable (Symbol, Uid)
 
-data Type a
+data Type
   = Int
   | String
   | Nil
-  | Record [(Symbol, Type a)] Uid a
-  | Array (Type a) Uid a
-  | FunCall [Type a] (Type a) Uid a
-  | UnresolvedType Symbol
+  | Unit
+  | Record [(Symbol, Type)] Uid SourceSpan
+  | Array Type Uid SourceSpan
+  | FunCall [Type] Type Uid SourceSpan
+  | NamedType Symbol (Maybe Type)
 
-instance Eq (Type a) where
-  (==) :: Type a -> Type a -> Bool
+instance Eq Type where
+  (==) :: Type -> Type -> Bool
   Int == Int = True
   String == String = True
   Nil == Nil = True
