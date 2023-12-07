@@ -8,6 +8,7 @@ import Tiger.Util.SymbolTable (Symbol, Uid)
 data Type
   = Int
   | String
+  | Bool
   | Nil
   | Unit
   | Record [(Symbol, Type)] Uid SourceSpan

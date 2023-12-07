@@ -75,21 +75,22 @@ data BinaryOperator
   | GeOp
   | AndOp
   | OrOp
+  deriving (Eq)
 
-instance Eq BinaryOperator where
-  AddOp == AddOp = True
-  SubOp == SubOp = True
-  MulOp == MulOp = True
-  DivOp == DivOp = True
-  EqOp == EqOp = True
-  NeqOp == NeqOp = True
-  LtOp == LtOp = True
-  LeOp == LeOp = True
-  GtOp == GtOp = True
-  GeOp == GeOp = True
-  AndOp == AndOp = True
-  OrOp == OrOp = True
-  _ == _ = False
+-- instance Eq BinaryOperator where
+--   AddOp == AddOp = True
+--   SubOp == SubOp = True
+--   MulOp == MulOp = True
+--   DivOp == DivOp = True
+--   EqOp == EqOp = True
+--   NeqOp == NeqOp = True
+--   LtOp == LtOp = True
+--   LeOp == LeOp = True
+--   GtOp == GtOp = True
+--   GeOp == GeOp = True
+--   AndOp == AndOp = True
+--   OrOp == OrOp = True
+--   _ == _ = False
 
 instance Show BinaryOperator where
   show AddOp = "+"

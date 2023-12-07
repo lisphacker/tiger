@@ -1,6 +1,7 @@
 module Tiger.Semantics.TypeCheck where
 
 import Control.Monad.State (MonadState (..), State, evalState)
+import Data.Maybe (isJust)
 import Data.Text (unpack)
 import Tiger.Errors (Error (TypeError))
 import Tiger.Semantics.Environment qualified as E
@@ -79,9 +80,35 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
       case lookupVar id e of
         Just (T.FunCall argTypes retType _ _) -> do
           argTypes' <- mapM (typeCheckExprST e) args
-          pure $ if map Right argTypes == argTypes' then 
-                  Right retType
-                else
-                  Left $ TypeError "Argument type mismatch" p
+          pure $
+            if map Right argTypes == argTypes'
+              then Right retType
+              else Left $ TypeError "Argument type mismatch" p
         Just _ -> pure $ Left $ TypeError "Expected function type" p
         Nothing -> pure $ Left $ TypeError ("Unresolved function '" ++ unpack idn ++ "'") p
+    (AST.NegateExpression expr p) -> typeCheckExprST e expr
+    (AST.OpExpression op expr1 expr2 p) -> do
+      eiT1 <- typeCheckExprST e expr1
+      eiT2 <- typeCheckExprST e expr2
+      case (eiT1, eiT2) of
+        (Right t1, Right t2) ->
+          if op `elem` [AST.AddOp, AST.SubOp, AST.MulOp, AST.DivOp]
+            then
+              if t1 == T.Int && t2 == T.Int
+                then pure $ Right T.Int
+                else pure $ Left $ TypeError "Expected integer type" p
+            else
+              if op `elem` [AST.EqOp, AST.NeqOp, AST.LtOp, AST.LeOp, AST.GtOp, AST.GeOp]
+                then
+                  if t1 == t2
+                    then pure $ Right t1
+                    else pure $ Left $ TypeError "Expected same type" p
+                else
+                  if op `elem` [AST.AndOp, AST.OrOp]
+                    then
+                      if t1 == T.Bool && t2 == T.Bool
+                        then pure $ Right T.Bool
+                        else pure $ Left $ TypeError "Expected boolean type" p
+                    else pure $ Left $ TypeError "Unresolved operator" p
+        (Left err, _) -> pure $ Left err
+        (_, Left err) -> pure $ Left err
