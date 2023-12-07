@@ -112,3 +112,14 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
                     else pure $ Left $ TypeError "Unresolved operator" p
         (Left err, _) -> pure $ Left err
         (_, Left err) -> pure $ Left err
+    (AST.SeqExpression exprs p) -> do
+      ets <- mapM (typeCheckExprST e) exprs
+      pure $
+        if all isRight ets
+          then Right $ last $ map fromRight ets
+          else Left $ TypeError "Expected same type" p
+     where
+      isRight (Right _) = True
+      isRight _ = False
+      fromRight (Right t) = t
+      fromRight _ = undefined
