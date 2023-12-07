@@ -25,6 +25,9 @@ instance Show SourceSpan where
 class Spanned a where
   getSpan :: a -> SourceSpan
 
+emptySpan :: SourceSpan
+emptySpan = SourceSpan (SourceLocation 0 0 0) (SourceLocation 0 0 0)
+
 mergeSpans :: SourceSpan -> SourceSpan -> SourceSpan
 mergeSpans (SourceSpan s1 e1) (SourceSpan s2 e2) = SourceSpan (min s1 s2) (max e1 e2)
 

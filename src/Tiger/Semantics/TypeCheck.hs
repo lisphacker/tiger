@@ -1,14 +1,17 @@
 module Tiger.Semantics.TypeCheck where
 
-import Control.Monad.State (MonadState (..), State, evalState)
+import Control.Monad.State (MonadState (..), State, evalState, foldM)
 import Data.Maybe (isJust)
 import Data.Text (unpack)
+import GHC.Base (Type, undefined)
 import Tiger.Errors (Error (TypeError))
 import Tiger.Semantics.Environment (newEnv)
 import Tiger.Semantics.Environment qualified as E
 import Tiger.Semantics.Types qualified as T
 import Tiger.Syntax.AST qualified as AST
-import Tiger.Util.SourcePos (SourceSpan)
+import Tiger.Syntax.Parser
+import Tiger.Util.SourcePos (SourceSpan, Spanned (..), emptySpan)
+import Tiger.Util.SymbolTable (Symbol)
 
 isRight (Right _) = True
 isRight _ = False
@@ -42,11 +45,50 @@ getIncrementedUid = do
 typeCheckExpr :: E.Environment -> AST.Expression SourceSpan -> Either Error T.Type
 typeCheckExpr env expr = evalState (typeCheckExprST env expr) (TypeCheckState 100)
 
-typeCheckTypeST :: E.Environment -> AST.TypeIdentifier SourceSpan -> State TypeCheckState (Either Error T.Type)
-typeCheckTypeST = undefined
+typeCheckTypeIdentifierST :: E.Environment -> AST.TypeIdentifier SourceSpan -> State TypeCheckState (Either Error T.Type)
+typeCheckTypeIdentifierST e ti =
+  case lookupType ti e of
+    Just (T.NamedType s _) -> typeCheckTypeIdentifierST e (AST.Identifier s emptySpan)
+    Just t -> pure $ Right t
+    Nothing -> pure $ Left $ TypeError "Unresolved type" (getSpan ti)
 
-typeCheckDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> State TypeCheckState E.Environment
-typeCheckDeclsST = undefined
+typeCheckTypedFieldST :: E.Environment -> AST.TypedField SourceSpan -> State TypeCheckState ((Symbol, T.Type), E.Environment)
+typeCheckTypedFieldST = undefined
+
+typeCheckTypeST :: E.Environment -> AST.Type SourceSpan -> State TypeCheckState (T.Type, E.Environment)
+typeCheckTypeST e (AST.TypeAlias ti@(AST.Identifier tin sp) _) = do
+  case lookupType ti e of
+    Just (T.NamedType s _) -> do
+      let t = T.NamedType s Nothing
+      typeCheckTypeST e (AST.TypeAlias (AST.Identifier s sp) sp)
+    Just ty -> pure (ty, e)
+    Nothing -> do
+      let ty = T.NamedType tin Nothing
+      let e' = E.insertType tin ty e
+      pure (ty, e')
+typeCheckTypeST e (AST.RecordType fs sp) = do
+  (symFtys, e') <- foldM f ([], e) fs
+  uid <- getIncrementedUid
+  let ty = T.Record symFtys uid sp
+  pure (ty, e')
+ where
+  f :: ([(Symbol, T.Type)], E.Environment) -> AST.TypedField SourceSpan -> State TypeCheckState ([(Symbol, T.Type)], E.Environment)
+  f (symtys, e) (AST.TypedField id@(AST.Identifier idn _) ti _) = do
+    eiType <- typeCheckTypeIdentifierST e ti
+    case eiType of
+      Right t -> pure ((idn, t) : symtys, e)
+      Left err -> do
+        let t = T.NamedType idn Nothing
+        let e' = E.insertType idn t e
+        pure ((idn, t) : symtys, e')
+
+processDeclST :: E.Environment -> AST.Decl SourceSpan -> State TypeCheckState E.Environment
+processDeclST e (AST.TypeDecl (AST.Identifier ti _) astTy _) = do
+  (ty, e') <- typeCheckTypeST e astTy
+  pure $ E.insertType ti ty e'
+
+processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> State TypeCheckState E.Environment
+processDeclsST = foldM processDeclST
 
 typeCheckExprST :: E.Environment -> AST.Expression SourceSpan -> State TypeCheckState (Either Error T.Type)
 typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =

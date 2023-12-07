@@ -189,6 +189,9 @@ getStrFromToken t = error "getStrFromToken: not a string"
 parseExpression :: String -> Either Err.Error (Expression SourceSpan)
 parseExpression s = L.tokenScan s >>= parseTigerExpression
 
+instance Spanned (TypeIdentifier SourceSpan) where
+  getSpan (Identifier _ s) = s
+  
 instance Spanned (LValue SourceSpan) where
   getSpan (IdLValue _ s) = s
   getSpan (RecordLValue _ _ s) = s
