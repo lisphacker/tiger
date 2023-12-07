@@ -132,7 +132,7 @@ Exp : nil { NilExpression (getSpan $1) }
     | while Exp do Exp { WhileExpression $2 $4 ($1 <+> $4) }
     | for identifier ":=" Exp to Exp do Exp { ForExpression (mkIdent $2) $4 $6 $8 ($1 <+> $8) }
     | break { BreakExpression (getSpan $1) }
-    | let Chunks in Exps end { LetExpression $2 $4 ($1 <+> $5) }
+    | let Decls in Exps end { LetExpression $2 $4 ($1 <+> $5) }
 
 Exps : Exp ';' Exps { $1:$3 }
      | Exp { [$1] }
@@ -148,13 +148,13 @@ FuncDecl : function identifier '(' TypedFields ')' ':' identifier '=' Exp { Func
 PrimitiveDecl : primitive identifier '(' TypedFields ')' ':' identifier { PrimitiveDecl (mkIdent $2) $4 (Just (mkIdent $7)) ($1 <+> $7) }
               | primitive identifier '(' TypedFields ')' { PrimitiveDecl (mkIdent $2) $4 Nothing ($1 <+> $5) }
 
-Chunk : TypeDecl { $1 }
+Decl : TypeDecl { $1 }
       | VarDecl { $1 }
       | FuncDecl { $1 }
       | PrimitiveDecl { $1 }
 
-Chunks : Chunk Chunks { $1:$2 }
-       | Chunk { [$1] }
+Decls : Decl Decls { $1:$2 }
+       | Decl { [$1] }
 
 
 {

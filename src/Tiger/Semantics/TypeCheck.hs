@@ -45,7 +45,7 @@ typeCheckExpr env expr = evalState (typeCheckExprST env expr) (TypeCheckState 10
 typeCheckTypeST :: E.Environment -> AST.TypeIdentifier SourceSpan -> State TypeCheckState (Either Error T.Type)
 typeCheckTypeST = undefined
 
-typeCheckDeclsST :: E.Environment -> [AST.Chunk SourceSpan] -> State TypeCheckState E.Environment
+typeCheckDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> State TypeCheckState E.Environment
 typeCheckDeclsST = undefined
 
 typeCheckExprST :: E.Environment -> AST.Expression SourceSpan -> State TypeCheckState (Either Error T.Type)

@@ -122,7 +122,7 @@ data Expression a
   | WhileExpression (Expression a) (Expression a) a
   | ForExpression (Identifier a) (Expression a) (Expression a) (Expression a) a
   | BreakExpression a
-  | LetExpression [Chunk a] [Expression a] a
+  | LetExpression [Decl a] [Expression a] a
 
 instance Eq (Expression a) where
   (NilExpression _) == (NilExpression _) = True
@@ -164,19 +164,19 @@ instance Show (Expression a) where
   show (BreakExpression _) = "break"
   show (LetExpression cs es _) = "let " ++ show cs ++ " in " ++ show es ++ " end"
 
-data Chunk a
+data Decl a
   = TypeDecl (TypeIdentifier a) (Type a) a
   | FuncDecl (Identifier a) [TypedField a] (Maybe (TypeIdentifier a)) (Expression a) a
   | PrimitiveDecl (Identifier a) [TypedField a] (Maybe (TypeIdentifier a)) a
   | VarDecl (Identifier a) (Maybe (TypeIdentifier a)) (Expression a) a
 
-instance Show (Chunk a) where
+instance Show (Decl a) where
   show (TypeDecl ti t _) = printToken "TYPEDECL" $ "type " ++ show ti ++ " = " ++ show t
   show (FuncDecl i fs r e _) = printToken "FUNCDECL" $ "function " ++ show i ++ "(" ++ show fs ++ ")" ++ maybe "" (\r' -> " : " ++ show r') r ++ " = " ++ show e
   show (PrimitiveDecl i fs r _) = printToken "PRIMDECL" $ "primitive " ++ show i ++ "(" ++ show fs ++ ")" ++ maybe "" (\r' -> " : " ++ show r') r
   show (VarDecl i t e _) = printToken "VARDECL" $ "var " ++ show i ++ maybe "" (\t' -> " : " ++ show t') t ++ " := " ++ show e
 
-instance Eq (Chunk a) where
+instance Eq (Decl a) where
   (TypeDecl ti1 t1 _) == (TypeDecl ti2 t2 _) = ti1 == ti2 && t1 == t2
   (FuncDecl i1 fs1 r1 e1 _) == (FuncDecl i2 fs2 r2 e2 _) = i1 == i2 && fs1 == fs2 && r1 == r2 && e1 == e2
   (PrimitiveDecl i1 fs1 r1 _) == (PrimitiveDecl i2 fs2 r2 _) = i1 == i2 && fs1 == fs2 && r1 == r2
