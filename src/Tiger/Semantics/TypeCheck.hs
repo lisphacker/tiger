@@ -123,3 +123,35 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
       isRight _ = False
       fromRight (Right t) = t
       fromRight _ = undefined
+    (AST.AssignmentExpression lval expr p) -> do
+      eiT1 <- typeCheckExprST e (AST.LValueExpression lval p)
+      eiT2 <- typeCheckExprST e expr
+      case (eiT1, eiT2) of
+        (Right t1, Right t2) ->
+          if t1 == t2
+            then pure $ Right T.Unit
+            else pure $ Left $ TypeError "Expected same type" p
+        (Left err, _) -> pure $ Left err
+        (_, Left err) -> pure $ Left err
+    (AST.IfExpression cond expr1 expr2 p) -> do
+      eiT1 <- typeCheckExprST e cond
+      eiT2 <- typeCheckExprST e expr1
+      eiT3 <- typeCheckExprST e expr2
+      case (eiT1, eiT2, eiT3) of
+        (Right t1, Right t2, Right t3) ->
+          if t1 == T.Bool && t2 == t3
+            then pure $ Right t2
+            else pure $ Left $ TypeError "Expected boolean condition and same type for then and else" p
+        (Left err, _, _) -> pure $ Left err
+        (_, Left err, _) -> pure $ Left err
+        (_, _, Left err) -> pure $ Left err
+    (AST.WhileExpression cond expr p) -> do
+      eiT1 <- typeCheckExprST e cond
+      eiT2 <- typeCheckExprST e expr
+      case (eiT1, eiT2) of
+        (Right t1, Right t2) ->
+          if t1 == T.Bool && t2 == T.Unit
+            then pure $ Right T.Unit
+            else pure $ Left $ TypeError "Expected boolean condition and unit body" p
+        (Left err, _) -> pure $ Left err
+        (_, Left err) -> pure $ Left err
