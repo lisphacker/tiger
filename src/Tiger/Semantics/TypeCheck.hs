@@ -81,6 +81,19 @@ typeCheckTypeST e (AST.RecordType fs sp) = do
         let t = T.NamedType idn Nothing
         let e' = E.insertType idn t e
         pure ((idn, t) : symtys, e')
+typeCheckTypeST e (AST.ArrayType ti@(AST.Identifier tin _) sp) = do
+  eiType <- typeCheckTypeIdentifierST e ti
+  case eiType of
+    Right t -> do
+      uid <- getIncrementedUid
+      let ty = T.Array t uid sp
+      pure (ty, e)
+    Left err -> do
+      let t = T.NamedType tin Nothing
+      let e' = E.insertType tin t e
+      uid <- getIncrementedUid
+      let ty = T.Array t uid sp
+      pure (ty, e')
 
 processDeclST :: E.Environment -> AST.Decl SourceSpan -> State TypeCheckState E.Environment
 processDeclST e (AST.TypeDecl (AST.Identifier ti _) astTy _) = do
@@ -227,7 +240,7 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
     (AST.BreakExpression p) -> pure $ Right T.Unit
     (AST.LetExpression decls exprs p) -> do
       let e' = newEnv e
-      e'' <- typeCheckDeclsST e' decls
+      e'' <- processDeclsST e' decls
       ets <- mapM (typeCheckExprST e'') exprs
       pure $
         if all isRight ets
