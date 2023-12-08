@@ -53,7 +53,14 @@ typeCheckTypeIdentifierST e ti =
     Nothing -> pure $ Left $ TypeError "Unresolved type" (getSpan ti)
 
 typeCheckTypedFieldST :: E.Environment -> AST.TypedField SourceSpan -> State TypeCheckState ((Symbol, T.Type), E.Environment)
-typeCheckTypedFieldST = undefined
+typeCheckTypedFieldST e (AST.TypedField id@(AST.Identifier idn _) tid@(AST.Identifier tidn _) sp) = do
+  eiType <- typeCheckTypeIdentifierST e tid
+  case eiType of
+    Right t -> pure ((idn, t), e)
+    Left err -> do
+      let t = T.NamedType tidn Nothing
+      let e' = E.insertType tidn t e
+      pure ((idn, t), e')
 
 typeCheckTypeST :: E.Environment -> AST.Type SourceSpan -> State TypeCheckState (T.Type, E.Environment)
 typeCheckTypeST e (AST.TypeAlias ti@(AST.Identifier tin sp) _) = do
