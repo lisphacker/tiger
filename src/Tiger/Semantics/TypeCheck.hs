@@ -44,7 +44,7 @@ getIncrementedUid = do
   put $ TypeCheckState uid'
   pure uid'
 
-typeCheckTypeIdentifierST :: E.Environment -> AST.TypeIdentifier SourceSpan -> WithSemanticState (Either Error T.Type)
+typeCheckTypeIdentifierST :: E.Environment -> AST.TypeIdentifier SourceSpan -> WithSemanticState (Result T.Type)
 typeCheckTypeIdentifierST e ti =
   case lookupType ti e of
     Just (T.NamedType s _) -> typeCheckTypeIdentifierST e (AST.Identifier s emptySpan)
@@ -107,6 +107,8 @@ processDeclST e (AST.TypeDecl (AST.Identifier ti _) astTy _) = do
   case eiType of
     Right (ty, e') -> pure $ Right $ E.insertType ti ty e'
     Left err -> pure $ Left err
+
+-- processDeclST e (AST.VarDecl id@(AST.Identifier idn _) tid@(AST.Identifier tidn _) expr _) = do
 
 processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> WithSemanticState (Result E.Environment)
 processDeclsST e [] = pure $ Right e
