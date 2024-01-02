@@ -8,3 +8,5 @@ data Error
   | SyntaxErrorAtEndOfInput String
   | TypeError String SourceSpan
   deriving (Eq, Show)
+
+type Result = Either Error

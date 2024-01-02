@@ -4,12 +4,13 @@ import Control.Monad.State (MonadState (..), State, evalState, foldM)
 import Data.Maybe (isJust)
 import Data.Text (unpack)
 import GHC.Base (Type, undefined)
-import Tiger.Errors (Error (TypeError))
+import Tiger.Errors (Error (TypeError), Result)
 import Tiger.Semantics.Environment (newEnv)
 import Tiger.Semantics.Environment qualified as E
 import Tiger.Semantics.Types qualified as T
 import Tiger.Syntax.AST qualified as AST
 import Tiger.Syntax.Parser
+import Tiger.Syntax.Tokens (Token (Do))
 import Tiger.Util.SourcePos (SourceSpan, Spanned (..), emptySpan)
 import Tiger.Util.SymbolTable (Symbol)
 
@@ -20,6 +21,7 @@ fromRight (Right t) = t
 fromRight _ = undefined
 
 newtype TypeCheckState = TypeCheckState Int
+type WithSemanticState = State TypeCheckState
 
 lookupType :: AST.TypeIdentifier SourceSpan -> E.Environment -> Maybe T.Type
 lookupType (AST.Identifier s _) e =
@@ -35,24 +37,21 @@ lookupVar (AST.Identifier s _) e =
     Just t -> Just t
     Nothing -> Nothing
 
-getIncrementedUid :: State TypeCheckState Int
+getIncrementedUid :: WithSemanticState Int
 getIncrementedUid = do
   (TypeCheckState uid) <- get
   let uid' = uid + 1
   put $ TypeCheckState uid'
   pure uid'
 
-typeCheckExpr :: E.Environment -> AST.Expression SourceSpan -> Either Error T.Type
-typeCheckExpr env expr = evalState (typeCheckExprST env expr) (TypeCheckState 100)
-
-typeCheckTypeIdentifierST :: E.Environment -> AST.TypeIdentifier SourceSpan -> State TypeCheckState (Either Error T.Type)
+typeCheckTypeIdentifierST :: E.Environment -> AST.TypeIdentifier SourceSpan -> WithSemanticState (Either Error T.Type)
 typeCheckTypeIdentifierST e ti =
   case lookupType ti e of
     Just (T.NamedType s _) -> typeCheckTypeIdentifierST e (AST.Identifier s emptySpan)
     Just t -> pure $ Right t
     Nothing -> pure $ Left $ TypeError "Unresolved type" (getSpan ti)
 
-typeCheckTypedFieldST :: E.Environment -> AST.TypedField SourceSpan -> State TypeCheckState ((Symbol, T.Type), E.Environment)
+typeCheckTypedFieldST :: E.Environment -> AST.TypedField SourceSpan -> WithSemanticState ((Symbol, T.Type), E.Environment)
 typeCheckTypedFieldST e (AST.TypedField id@(AST.Identifier idn _) tid@(AST.Identifier tidn _) sp) = do
   eiType <- typeCheckTypeIdentifierST e tid
   case eiType of
@@ -62,24 +61,24 @@ typeCheckTypedFieldST e (AST.TypedField id@(AST.Identifier idn _) tid@(AST.Ident
       let e' = E.insertType tidn t e
       pure ((idn, t), e')
 
-typeCheckTypeST :: E.Environment -> AST.Type SourceSpan -> State TypeCheckState (T.Type, E.Environment)
+typeCheckTypeST :: E.Environment -> AST.Type SourceSpan -> WithSemanticState (Result (T.Type, E.Environment))
 typeCheckTypeST e (AST.TypeAlias ti@(AST.Identifier tin sp) _) = do
   case lookupType ti e of
     Just (T.NamedType s _) -> do
       let t = T.NamedType s Nothing
       typeCheckTypeST e (AST.TypeAlias (AST.Identifier s sp) sp)
-    Just ty -> pure (ty, e)
+    Just ty -> pure $ Right (ty, e)
     Nothing -> do
       let ty = T.NamedType tin Nothing
       let e' = E.insertType tin ty e
-      pure (ty, e')
+      pure $ Right (ty, e')
 typeCheckTypeST e (AST.RecordType fs sp) = do
   (symFtys, e') <- foldM f ([], e) fs
   uid <- getIncrementedUid
   let ty = T.Record symFtys uid sp
-  pure (ty, e')
+  pure $ Right (ty, e')
  where
-  f :: ([(Symbol, T.Type)], E.Environment) -> AST.TypedField SourceSpan -> State TypeCheckState ([(Symbol, T.Type)], E.Environment)
+  f :: ([(Symbol, T.Type)], E.Environment) -> AST.TypedField SourceSpan -> WithSemanticState ([(Symbol, T.Type)], E.Environment)
   f (symtys, e) (AST.TypedField id@(AST.Identifier idn _) ti _) = do
     eiType <- typeCheckTypeIdentifierST e ti
     case eiType of
@@ -94,23 +93,30 @@ typeCheckTypeST e (AST.ArrayType ti@(AST.Identifier tin _) sp) = do
     Right t -> do
       uid <- getIncrementedUid
       let ty = T.Array t uid sp
-      pure (ty, e)
+      pure $ Right (ty, e)
     Left err -> do
       let t = T.NamedType tin Nothing
       let e' = E.insertType tin t e
       uid <- getIncrementedUid
       let ty = T.Array t uid sp
-      pure (ty, e')
+      pure $ Right (ty, e')
 
-processDeclST :: E.Environment -> AST.Decl SourceSpan -> State TypeCheckState E.Environment
+processDeclST :: E.Environment -> AST.Decl SourceSpan -> WithSemanticState (Result E.Environment)
 processDeclST e (AST.TypeDecl (AST.Identifier ti _) astTy _) = do
-  (ty, e') <- typeCheckTypeST e astTy
-  pure $ E.insertType ti ty e'
+  eiType <- typeCheckTypeST e astTy
+  case eiType of
+    Right (ty, e') -> pure $ Right $ E.insertType ti ty e'
+    Left err -> pure $ Left err
 
-processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> State TypeCheckState E.Environment
-processDeclsST = foldM processDeclST
+processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> WithSemanticState (Result E.Environment)
+processDeclsST e [] = pure $ Right e
+processDeclsST e (d : ds) = do
+  e' <- processDeclST e d
+  case e' of
+    Right e'' -> processDeclsST e'' ds
+    Left err -> pure $ Left err
 
-typeCheckExprST :: E.Environment -> AST.Expression SourceSpan -> State TypeCheckState (Either Error T.Type)
+typeCheckExprST :: E.Environment -> AST.Expression SourceSpan -> WithSemanticState (Result T.Type)
 typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
   case expr of
     (AST.NilExpression p) -> pure $ Right T.Nil
@@ -247,9 +253,15 @@ typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
     (AST.BreakExpression p) -> pure $ Right T.Unit
     (AST.LetExpression decls exprs p) -> do
       let e' = newEnv e
-      e'' <- processDeclsST e' decls
-      ets <- mapM (typeCheckExprST e'') exprs
-      pure $
-        if all isRight ets
-          then Right $ last $ map fromRight ets
-          else Left $ TypeError "Expected same type" p
+      eitherE'' <- processDeclsST e' decls
+      case eitherE'' of
+        Right e'' -> do
+          ets <- mapM (typeCheckExprST e'') exprs
+          pure $
+            if all isRight ets
+              then Right $ last $ map fromRight ets
+              else Left $ TypeError "Expected same type" p
+        Left err -> pure $ Left err
+
+typeCheckExpr :: E.Environment -> AST.Expression SourceSpan -> Result T.Type
+typeCheckExpr env expr = evalState (typeCheckExprST env expr) (TypeCheckState 100)
