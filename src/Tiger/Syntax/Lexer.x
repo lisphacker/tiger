@@ -42,7 +42,6 @@ tiger :-
   "var" { mkToken Tok.Var }
   "type" { mkToken Tok.Type }
   "import" { mkToken Tok.Import }
-  "primitive" { mkToken Tok.Primitive }
   "class" { mkToken Tok.Class }
   "extends" { mkToken Tok.Extends }
   "method" { mkToken Tok.Method }

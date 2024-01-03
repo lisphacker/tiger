@@ -23,7 +23,6 @@ data Token
   | Var !SourceSpan
   | Type !SourceSpan
   | Import !SourceSpan
-  | Primitive !SourceSpan
   | Class !SourceSpan
   | Extends !SourceSpan
   | Method !SourceSpan
@@ -83,7 +82,6 @@ instance Eq Token where
   (Var _) == (Var _) = True
   (Type _) == (Type _) = True
   (Import _) == (Import _) = True
-  (Primitive _) == (Primitive _) = True
   (Class _) == (Class _) = True
   (Extends _) == (Extends _) = True
   (Method _) == (Method _) = True
@@ -138,7 +136,6 @@ instance Show Token where
   show (Var _) = "var"
   show (Type _) = "type"
   show (Import _) = "import"
-  show (Primitive _) = "primitive"
   show (Class _) = "class"
   show (Extends _) = "extends"
   show (Method _) = "method"
@@ -192,7 +189,6 @@ instance Spanned Token where
   getSpan (Var s) = s
   getSpan (Type s) = s
   getSpan (Import s) = s
-  getSpan (Primitive s) = s
   getSpan (Class s) = s
   getSpan (Extends s) = s
   getSpan (Method s) = s

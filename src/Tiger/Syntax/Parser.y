@@ -44,7 +44,6 @@ import Tiger.Util.SourcePos (SourceSpan, Spanned(..), getSpan, mergeSpans, merge
   var       { Tok.Var _ }
   type      { Tok.Type _ }
   import    { Tok.Import _ }
-  primitive { Tok.Primitive _ }
   class     { Tok.Class _ }
   extends   { Tok.Extends _ }
   method    { Tok.Method _ }
@@ -145,13 +144,9 @@ TypeDecl : type identifier '=' Type { TypeDecl (mkIdent $2) $4 ($1 <+> $4) }
 FuncDecl : function identifier '(' TypedFields ')' ':' identifier '=' Exp { FuncDecl (mkIdent $2) $4 (Just (mkIdent $7)) $9 ($1 <+> $9) }
          | function identifier '(' TypedFields ')' '=' Exp { FuncDecl (mkIdent $2) $4 Nothing $7 ($1 <+> $7) }
 
-PrimitiveDecl : primitive identifier '(' TypedFields ')' ':' identifier { PrimitiveDecl (mkIdent $2) $4 (Just (mkIdent $7)) ($1 <+> $7) }
-              | primitive identifier '(' TypedFields ')' { PrimitiveDecl (mkIdent $2) $4 Nothing ($1 <+> $5) }
-
 Decl : TypeDecl { $1 }
       | VarDecl { $1 }
       | FuncDecl { $1 }
-      | PrimitiveDecl { $1 }
 
 Decls : Decl Decls { $1:$2 }
        | Decl { [$1] }
