@@ -107,8 +107,23 @@ processDeclST e (AST.TypeDecl (AST.Identifier ti _) astTy _) = do
   case eiType of
     Right (ty, e') -> pure $ Right $ E.insertType ti ty e'
     Left err -> pure $ Left err
-
--- processDeclST e (AST.VarDecl id@(AST.Identifier idn _) tid@(AST.Identifier tidn _) expr _) = do
+processDeclST e (AST.VarDecl id@(AST.Identifier idn _) (Just tid@(AST.Identifier tidn _)) expr _) = do
+  eiType <- typeCheckTypeIdentifierST e tid
+  case eiType of
+    Right t -> do
+      eiExprType <- typeCheckExprST e expr
+      case eiExprType of
+        Right t' ->
+          if t == t'
+            then pure $ Right $ E.insertVar idn t e
+            else pure $ Left $ TypeError "Expected same type" (getSpan expr)
+        Left err -> pure $ Left err
+    Left err -> pure $ Left err
+processDeclST e (AST.VarDecl id@(AST.Identifier idn _) Nothing expr _) = do
+  eiExprType <- typeCheckExprST e expr
+  case eiExprType of
+    Right t -> pure $ Right $ E.insertVar idn t e
+    Left err -> pure $ Left err
 
 processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> WithSemanticState (Result E.Environment)
 processDeclsST e [] = pure $ Right e
