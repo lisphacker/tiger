@@ -126,12 +126,34 @@ processDeclST e (AST.VarDecl id@(AST.Identifier idn _) Nothing expr _) = do
     Left err -> pure $ Left err
 
 processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> WithSemanticState (Result E.Environment)
-processDeclsST e [] = pure $ Right e
-processDeclsST e (d : ds) = do
-  e' <- processDeclST e d
-  case e' of
-    Right e'' -> processDeclsST e'' ds
-    Left err -> pure $ Left err
+-- processDeclsST e [] = pure $ Right e
+-- processDeclsST e (d : ds) = do
+--   e' <- processDeclST e d
+--   case e' of
+--     Right e'' -> processDeclsST e'' ds
+--     Left err -> pure $ Left err
+processDeclsST e ds = do
+  let typeDecs = filter isTypeDecl ds
+  let varDecs = filter isVarDecl ds
+  let funcDecs = filter isFuncDecl ds
+  e' <- processDeclsST' (Right e) typeDecs
+  e'' <- processDeclsST' e' varDecs
+  processDeclsST' e'' funcDecs
+ where
+  isTypeDecl (AST.TypeDecl{}) = True
+  isTypeDecl _ = False
+  isVarDecl (AST.VarDecl{}) = True
+  isVarDecl _ = False
+  isFuncDecl (AST.FuncDecl{}) = True
+  isFuncDecl _ = False
+  processDeclsST' :: Result E.Environment -> [AST.Decl SourceSpan] -> WithSemanticState (Result E.Environment)
+  processDeclsST' (Left err) _ = pure $ Left err
+  processDeclsST' (Right e) [] = pure $ Right e
+  processDeclsST' (Right e) (d : ds) = do
+    e' <- processDeclST e d
+    case e' of
+      Right e'' -> processDeclsST' (Right e'') ds
+      Left err -> pure $ Left err
 
 typeCheckExprST :: E.Environment -> AST.Expression SourceSpan -> WithSemanticState (Result T.Type)
 typeCheckExprST e@(E.Environment typeEnv varEnv _) expr =
