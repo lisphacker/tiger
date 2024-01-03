@@ -126,12 +126,6 @@ processDeclST e (AST.VarDecl id@(AST.Identifier idn _) Nothing expr _) = do
     Left err -> pure $ Left err
 
 processDeclsST :: E.Environment -> [AST.Decl SourceSpan] -> WithSemanticState (Result E.Environment)
--- processDeclsST e [] = pure $ Right e
--- processDeclsST e (d : ds) = do
---   e' <- processDeclST e d
---   case e' of
---     Right e'' -> processDeclsST e'' ds
---     Left err -> pure $ Left err
 processDeclsST e ds = do
   let typeDecs = filter isTypeDecl ds
   let varDecs = filter isVarDecl ds
