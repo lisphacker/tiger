@@ -1,6 +1,6 @@
 # GHC supported by VS code Haskell extension: https://github.com/haskell/vscode-haskell#supported-ghc-versions
 # LTS resolvers: https://www.stackage.org/
 
-resolver: lts-21.14
+resolver: lts-21.24
 packages:
 - .
